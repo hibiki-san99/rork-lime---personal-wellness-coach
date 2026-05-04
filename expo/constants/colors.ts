@@ -1,0 +1,36 @@
+const Colors = {
+  nutrition: '#43A047',
+  nutritionLight: '#E8F5E9',
+  physicalActivity: '#EF6C00',
+  physicalActivityLight: '#FFF3E0',
+  sleep: '#1A3B5C',
+  sleepLight: '#E3EAF2',
+  stressManagement: '#7E57C2',
+  stressManagementLight: '#EDE7F6',
+  socialConnection: '#00897B',
+  socialConnectionLight: '#E0F2F1',
+  riskySubstances: '#E53935',
+  riskySubstancesLight: '#FFEBEE',
+
+  background: '#F7F5F0',
+  card: '#FFFFFF',
+  cardBorder: '#ECEAE4',
+  text: '#1A1A2E',
+  textSecondary: '#6B6B80',
+  textTertiary: '#9E9EB0',
+  white: '#FFFFFF',
+  black: '#000000',
+  divider: '#ECEAE4',
+  inputBg: '#F2F0EB',
+  inputBorder: '#DDD9D0',
+  overlay: 'rgba(0,0,0,0.4)',
+  success: '#43A047',
+  warning: '#EF6C00',
+  error: '#E53935',
+
+  tabBar: '#FFFFFF',
+  tabBarBorder: '#E8E6E0',
+  tabBarInactive: '#A0A0B0',
+};
+
+export default Colors;
