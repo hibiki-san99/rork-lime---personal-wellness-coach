@@ -227,9 +227,10 @@ const styles = StyleSheet.create({
   },
   shortcutStack: {
     position: 'absolute',
-    right: 20,
+    left: 0,
+    right: 0,
     bottom: Platform.OS === 'ios' ? 130 : 116,
-    alignItems: 'flex-end',
+    alignItems: 'center',
     gap: 12,
   },
   pill: {
