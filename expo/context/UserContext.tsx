@@ -8,7 +8,7 @@ import {
   TipCompletion, MissionProgress, HealthMarkerEntry, WaterReminderSettings,
   NutrientTargets,
 } from '@/types';
-import { DEFAULT_BADGES, calculateMealPoints, calculateActivityPoints, calculateSleepPoints, calculateJournalPoints } from '@/constants/data';
+import { DEFAULT_BADGES, calculateMealPoints, calculateActivityPoints, calculateSleepPoints, calculateJournalPoints, evaluateBadges, reconcileBadges } from '@/constants/data';
 import { POINTS_PER_TIP, POINTS_MODULE_COMPLETE, MISSION_MODULES, getMissionAutoCompletions } from '@/constants/missions';
 import { calculateNutrientTargets } from '@/utils/nutrientTargets';
 import { calculateHeartAge, getBMI } from '@/utils/heartAge';
@@ -81,7 +81,7 @@ export const [UserProvider, useUser] = createContextHook(() => {
         return {
           ...defaultState,
           ...remote,
-          badges: (remote.badges?.length) ? remote.badges : DEFAULT_BADGES,
+          badges: reconcileBadges(remote.badges),
           tipCompletions: remote.tipCompletions ?? [],
           missionProgress: remote.missionProgress ?? [],
           healthMarkers: remote.healthMarkers ?? [],
@@ -108,7 +108,7 @@ export const [UserProvider, useUser] = createContextHook(() => {
         return {
           ...defaultState,
           ...parsed,
-          badges: parsed.badges?.length ? parsed.badges : DEFAULT_BADGES,
+          badges: reconcileBadges(parsed.badges),
           tipCompletions: parsed.tipCompletions ?? [],
           missionProgress: parsed.missionProgress ?? [],
           healthMarkers: parsed.healthMarkers ?? [],
@@ -225,6 +225,30 @@ export const [UserProvider, useUser] = createContextHook(() => {
     });
   }, [persistState, syncToBackend]);
 
+  const dailyStepsForBadges = stepsAutomatic ? pedometerSteps : state.dailySteps;
+
+  // Evaluate badge unlocks whenever the underlying log/marker/progress data changes.
+  useEffect(() => {
+    if (!state.profile) return;
+    const { badges: nextBadges, newlyEarnedIds } = evaluateBadges(state, dailyStepsForBadges);
+    if (newlyEarnedIds.length > 0) {
+      console.log('[Badges] Newly earned:', newlyEarnedIds.join(', '));
+      updateState({ badges: nextBadges });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    state.mealLogs.length,
+    state.activityLogs.length,
+    state.sleepLogs.length,
+    state.journalLogs.length,
+    state.tipCompletions.length,
+    state.missionProgress,
+    state.healthMarkers.length,
+    state.totalPoints,
+    state.onboardingComplete,
+    dailyStepsForBadges,
+  ]);
+
   const completeOnboarding = useCallback((
     profile: UserProfile,
     medical: MedicalHistory,
@@ -340,36 +364,13 @@ export const [UserProvider, useUser] = createContextHook(() => {
     );
 
     const newLog = { ...log, points };
-    const newBadges = [...state.badges];
-
-    const firstMeal = newBadges.find(b => b.id === 'first_meal');
-    if (firstMeal && !firstMeal.earned) {
-      firstMeal.earned = true;
-      firstMeal.earnedDate = new Date().toISOString();
-    }
-
-    if (plantCategories.length >= 3) {
-      const plantPower = newBadges.find(b => b.id === 'plant_power');
-      if (plantPower && !plantPower.earned) {
-        plantPower.earned = true;
-        plantPower.earnedDate = new Date().toISOString();
-      }
-    }
-
     const newMeals = [...state.mealLogs, newLog];
-    if (newMeals.length >= 5) {
-      const fiveMeals = newBadges.find(b => b.id === 'five_meals');
-      if (fiveMeals && !fiveMeals.earned) {
-        fiveMeals.earned = true;
-        fiveMeals.earnedDate = new Date().toISOString();
-      }
-    }
+    void plantCategories;
 
     let newState: UserState = {
       ...state,
       mealLogs: newMeals,
       totalPoints: state.totalPoints + points,
-      badges: newBadges,
     };
     newState = checkAndAutoCompleteMissions(newState);
     updateState(newState);
@@ -379,18 +380,11 @@ export const [UserProvider, useUser] = createContextHook(() => {
   const addJournalLog = useCallback((log: JournalLog) => {
     const { total: journalPts } = calculateJournalPoints(log.entry);
     const newLog = { ...log, points: journalPts };
-    const newBadges = [...state.badges];
-    const firstJournal = newBadges.find(b => b.id === 'first_journal');
-    if (firstJournal && !firstJournal.earned) {
-      firstJournal.earned = true;
-      firstJournal.earnedDate = new Date().toISOString();
-    }
 
     let newState: UserState = {
       ...state,
       journalLogs: [...state.journalLogs, newLog],
       totalPoints: state.totalPoints + journalPts,
-      badges: newBadges,
     };
     newState = checkAndAutoCompleteMissions(newState);
     updateState(newState);
@@ -401,18 +395,11 @@ export const [UserProvider, useUser] = createContextHook(() => {
     const { total: actPoints } = calculateActivityPoints(log.durationMinutes, log.intensity);
     const points = actPoints;
     const newLog = { ...log, points };
-    const newBadges = [...state.badges];
-    const firstActivity = newBadges.find(b => b.id === 'first_activity');
-    if (firstActivity && !firstActivity.earned) {
-      firstActivity.earned = true;
-      firstActivity.earnedDate = new Date().toISOString();
-    }
 
     let newState: UserState = {
       ...state,
       activityLogs: [...state.activityLogs, newLog],
       totalPoints: state.totalPoints + points,
-      badges: newBadges,
     };
     newState = checkAndAutoCompleteMissions(newState);
     updateState(newState);
@@ -422,21 +409,12 @@ export const [UserProvider, useUser] = createContextHook(() => {
   const addSleepLog = useCallback((log: SleepLog) => {
     const { total: sleepPts } = calculateSleepPoints(log.bedtime, log.wakeTime, log.quality, log.wakeFeeling);
     const newLog = { ...log, points: sleepPts };
-    const newBadges = [...state.badges];
     const newSleepLogs = [...state.sleepLogs, newLog];
-    if (newSleepLogs.length >= 7) {
-      const sleepMaster = newBadges.find(b => b.id === 'sleep_master');
-      if (sleepMaster && !sleepMaster.earned) {
-        sleepMaster.earned = true;
-        sleepMaster.earnedDate = new Date().toISOString();
-      }
-    }
 
     let newState: UserState = {
       ...state,
       sleepLogs: newSleepLogs,
       totalPoints: state.totalPoints + sleepPts,
-      badges: newBadges,
     };
     newState = checkAndAutoCompleteMissions(newState);
     updateState(newState);
@@ -585,7 +563,6 @@ export const [UserProvider, useUser] = createContextHook(() => {
 
   const addHealthMarker = useCallback((entry: HealthMarkerEntry) => {
     const newEntry = { ...entry, points: POINTS_PER_HEALTH_MARKER };
-    const newBadges = [...state.badges];
     let newMarkers = [...state.healthMarkers, newEntry];
 
     if (entry.markerName === 'Weight' && state.profile && state.profile.heightCm > 0 && entry.value > 0) {
@@ -605,28 +582,9 @@ export const [UserProvider, useUser] = createContextHook(() => {
       console.log('[UserContext] Auto-logged BMI:', bmi, 'from weight marker:', entry.value);
     }
 
-    if (newMarkers.length >= 5) {
-      const trackerBadge = newBadges.find(b => b.id === 'health_tracker');
-      if (trackerBadge && !trackerBadge.earned) {
-        trackerBadge.earned = true;
-        trackerBadge.earnedDate = new Date().toISOString();
-      } else if (!newBadges.find(b => b.id === 'health_tracker')) {
-        newBadges.push({
-          id: 'health_tracker',
-          name: 'Health Tracker',
-          description: 'Logged 5 health markers',
-          icon: '🔬',
-          earned: true,
-          earnedDate: new Date().toISOString(),
-          color: '#00897B',
-        });
-      }
-    }
-
     updateState({
       healthMarkers: newMarkers,
       totalPoints: state.totalPoints + POINTS_PER_HEALTH_MARKER,
-      badges: newBadges,
     });
     return POINTS_PER_HEALTH_MARKER;
   }, [state, updateState]);

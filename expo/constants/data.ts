@@ -1,5 +1,5 @@
 import Colors from './colors';
-import { Badge, DailyTip, Team } from '@/types';
+import { Badge, DailyTip, Team, UserState } from '@/types';
 
 export const FOOD_CATEGORIES = [
   { id: 'whole_grains', label: 'Whole Grains', icon: '🌾' },
@@ -47,17 +47,292 @@ export const DAILY_TIPS: DailyTip[] = [
 ];
 
 export const DEFAULT_BADGES: Badge[] = [
-  { id: 'first_meal', name: 'First Bite', description: 'Log your first meal', icon: '🍽️', earned: false, color: Colors.nutrition },
-  { id: 'plant_power', name: 'Plant Power', description: 'Log 3+ plant categories in one meal', icon: '🌱', earned: false, color: Colors.nutrition },
-  { id: 'week_streak', name: 'Week Warrior', description: 'Log something every day for 7 days', icon: '🔥', earned: false, color: Colors.physicalActivity },
-  { id: 'first_journal', name: 'Open Book', description: 'Write your first journal entry', icon: '📖', earned: false, color: Colors.stressManagement },
-  { id: 'sleep_master', name: 'Sleep Master', description: 'Log 7 nights of sleep', icon: '😴', earned: false, color: Colors.sleep },
-  { id: 'step_goal', name: 'Step Star', description: 'Meet your daily step goal', icon: '⭐', earned: false, color: Colors.physicalActivity },
-  { id: 'social_butterfly', name: 'Team Player', description: 'Reach top 3 on your team leaderboard', icon: '🦋', earned: false, color: Colors.socialConnection },
-  { id: 'century', name: 'Century Club', description: 'Earn 100 points in a single day', icon: '💯', earned: false, color: Colors.physicalActivity },
-  { id: 'five_meals', name: 'Meal Prep Pro', description: 'Log 5 meals', icon: '👨‍🍳', earned: false, color: Colors.nutrition },
-  { id: 'first_activity', name: 'Get Moving', description: 'Log your first activity', icon: '🏃', earned: false, color: Colors.physicalActivity },
+  // === Nutrition ===
+  { id: 'first_meal', name: 'First Bite', description: 'Log your first meal', icon: '🍽️', earned: false, color: Colors.nutrition, tier: 'bronze', category: 'nutrition' },
+  { id: 'five_meals', name: 'Meal Prep Pro', description: 'Log 5 meals', icon: '👨‍🍳', earned: false, color: Colors.nutrition, tier: 'bronze', category: 'nutrition' },
+  { id: 'meals_25', name: 'Sous Chef', description: 'Log 25 meals', icon: '🥘', earned: false, color: Colors.nutrition, tier: 'silver', category: 'nutrition' },
+  { id: 'meals_50', name: 'Head Chef', description: 'Log 50 meals', icon: '🍱', earned: false, color: Colors.nutrition, tier: 'gold', category: 'nutrition' },
+  { id: 'meals_100', name: 'Master Chef', description: 'Log 100 meals', icon: '🏆', earned: false, color: Colors.nutrition, tier: 'platinum', category: 'nutrition' },
+  { id: 'plant_power', name: 'Plant Power', description: 'Log 3+ plant categories in one meal', icon: '🌱', earned: false, color: Colors.nutrition, tier: 'bronze', category: 'nutrition' },
+  { id: 'garden_master', name: 'Garden Master', description: 'Log 5+ plant categories in one meal', icon: '🌿', earned: false, color: Colors.nutrition, tier: 'silver', category: 'nutrition' },
+  { id: 'rainbow_plate', name: 'Rainbow Plate', description: 'Log all 6 plant categories in one meal', icon: '🌈', earned: false, color: Colors.nutrition, tier: 'gold', category: 'nutrition' },
+  { id: 'plant_streak_7', name: 'Plant Devotee', description: 'Log a plant-rich meal 7 days in a row', icon: '🥗', earned: false, color: Colors.nutrition, tier: 'silver', category: 'nutrition' },
+  { id: 'clean_eater', name: 'Clean Eater', description: 'Log 10 meals with no processed foods', icon: '🥦', earned: false, color: Colors.nutrition, tier: 'silver', category: 'nutrition' },
+
+  // === Activity ===
+  { id: 'first_activity', name: 'Get Moving', description: 'Log your first activity', icon: '🏃', earned: false, color: Colors.physicalActivity, tier: 'bronze', category: 'activity' },
+  { id: 'activity_10', name: 'Regular Mover', description: 'Log 10 activities', icon: '🤸', earned: false, color: Colors.physicalActivity, tier: 'bronze', category: 'activity' },
+  { id: 'activity_25', name: 'Workout Warrior', description: 'Log 25 activities', icon: '💪', earned: false, color: Colors.physicalActivity, tier: 'silver', category: 'activity' },
+  { id: 'activity_50', name: 'Fitness Fiend', description: 'Log 50 activities', icon: '🏋️', earned: false, color: Colors.physicalActivity, tier: 'gold', category: 'activity' },
+  { id: 'activity_100', name: 'Iron Athlete', description: 'Log 100 activities', icon: '🥇', earned: false, color: Colors.physicalActivity, tier: 'platinum', category: 'activity' },
+  { id: 'vigorous_5', name: 'Heart Pumper', description: 'Complete 5 vigorous workouts', icon: '🔥', earned: false, color: Colors.physicalActivity, tier: 'silver', category: 'activity' },
+  { id: 'vigorous_20', name: 'Beast Mode', description: 'Complete 20 vigorous workouts', icon: '⚡', earned: false, color: Colors.physicalActivity, tier: 'gold', category: 'activity' },
+  { id: 'variety_athlete', name: 'Variety Athlete', description: 'Try 5 different activity types', icon: '🎯', earned: false, color: Colors.physicalActivity, tier: 'silver', category: 'activity' },
+  { id: 'long_haul', name: 'Long Haul', description: 'Complete a 90+ minute session', icon: '⏱️', earned: false, color: Colors.physicalActivity, tier: 'silver', category: 'activity' },
+
+  // === Steps ===
+  { id: 'step_goal', name: 'Step Star', description: 'Hit your 10,000 step goal', icon: '⭐', earned: false, color: Colors.physicalActivity, tier: 'bronze', category: 'steps' },
+  { id: 'fifteen_k', name: '15K Trekker', description: 'Walk 15,000 steps in a day', icon: '🥾', earned: false, color: Colors.physicalActivity, tier: 'silver', category: 'steps' },
+  { id: 'twenty_k', name: '20K Marathoner', description: 'Walk 20,000 steps in a day', icon: '🏅', earned: false, color: Colors.physicalActivity, tier: 'gold', category: 'steps' },
+  { id: 'step_streak_3', name: 'Walking Habit', description: 'Hit step goal 3 days in a row', icon: '👟', earned: false, color: Colors.physicalActivity, tier: 'bronze', category: 'steps' },
+  { id: 'step_streak_7', name: 'Step Streaker', description: 'Hit step goal 7 days in a row', icon: '🦶', earned: false, color: Colors.physicalActivity, tier: 'silver', category: 'steps' },
+
+  // === Sleep ===
+  { id: 'first_sleep', name: 'Good Night', description: 'Log your first night of sleep', icon: '🌙', earned: false, color: Colors.sleep, tier: 'bronze', category: 'sleep' },
+  { id: 'sleep_master', name: 'Sleep Master', description: 'Log 7 nights of sleep', icon: '😴', earned: false, color: Colors.sleep, tier: 'silver', category: 'sleep' },
+  { id: 'sleep_30', name: 'Dream Keeper', description: 'Log 30 nights of sleep', icon: '🛌', earned: false, color: Colors.sleep, tier: 'gold', category: 'sleep' },
+  { id: 'full_eight', name: 'Full Eight', description: 'Sleep 8+ hours in a single night', icon: '🌜', earned: false, color: Colors.sleep, tier: 'bronze', category: 'sleep' },
+  { id: 'refreshed_5', name: 'Well Rested', description: 'Wake up refreshed 5 times', icon: '🌅', earned: false, color: Colors.sleep, tier: 'silver', category: 'sleep' },
+  { id: 'sleep_consistent', name: 'Sleep Rhythm', description: 'Maintain a consistent bedtime for 7 nights', icon: '⏰', earned: false, color: Colors.sleep, tier: 'gold', category: 'sleep' },
+
+  // === Journal ===
+  { id: 'first_journal', name: 'Open Book', description: 'Write your first journal entry', icon: '📖', earned: false, color: Colors.stressManagement, tier: 'bronze', category: 'journal' },
+  { id: 'journal_7', name: 'Reflective', description: 'Write 7 journal entries', icon: '📓', earned: false, color: Colors.stressManagement, tier: 'silver', category: 'journal' },
+  { id: 'journal_30', name: 'Inner Sage', description: 'Write 30 journal entries', icon: '✍️', earned: false, color: Colors.stressManagement, tier: 'gold', category: 'journal' },
+  { id: 'deep_thinker', name: 'Deep Thinker', description: 'Write 5 entries of 100+ words', icon: '🧠', earned: false, color: Colors.stressManagement, tier: 'silver', category: 'journal' },
+  { id: 'gratitude_master', name: 'Gratitude Master', description: 'Write 10 positive journal entries', icon: '🙏', earned: false, color: Colors.stressManagement, tier: 'gold', category: 'journal' },
+
+  // === Points ===
+  { id: 'century', name: 'Century Club', description: 'Earn 100 points in a single day', icon: '💯', earned: false, color: Colors.mood, tier: 'bronze', category: 'points' },
+  { id: 'super_day', name: 'Super Day', description: 'Earn 200 points in a single day', icon: '🚀', earned: false, color: Colors.mood, tier: 'silver', category: 'points' },
+  { id: 'points_500', name: 'High Roller', description: 'Earn 500 total points', icon: '🎖️', earned: false, color: Colors.mood, tier: 'bronze', category: 'points' },
+  { id: 'points_1000', name: 'Four Figures', description: 'Earn 1,000 total points', icon: '🏵️', earned: false, color: Colors.mood, tier: 'silver', category: 'points' },
+  { id: 'points_5000', name: 'Elite Five', description: 'Earn 5,000 total points', icon: '👑', earned: false, color: Colors.mood, tier: 'gold', category: 'points' },
+  { id: 'points_10000', name: 'Legendary', description: 'Earn 10,000 total points', icon: '💎', earned: false, color: Colors.mood, tier: 'platinum', category: 'points' },
+
+  // === Streak ===
+  { id: 'week_streak', name: 'Week Warrior', description: 'Log something 7 days in a row', icon: '🔥', earned: false, color: Colors.mood, tier: 'silver', category: 'streak' },
+  { id: 'two_week_streak', name: 'Fortnight Fighter', description: 'Log something 14 days in a row', icon: '🌟', earned: false, color: Colors.mood, tier: 'gold', category: 'streak' },
+  { id: 'month_streak', name: 'Unstoppable', description: 'Log something 30 days in a row', icon: '🏆', earned: false, color: Colors.mood, tier: 'platinum', category: 'streak' },
+
+  // === Health ===
+  { id: 'health_tracker', name: 'Health Tracker', description: 'Log 5 health markers', icon: '🔬', earned: false, color: Colors.socialConnection, tier: 'bronze', category: 'health' },
+  { id: 'health_pro', name: 'Health Pro', description: 'Log 25 health markers', icon: '🩺', earned: false, color: Colors.socialConnection, tier: 'silver', category: 'health' },
+  { id: 'weight_logger', name: 'Scale Watcher', description: 'Log weight 10 times', icon: '⚖️', earned: false, color: Colors.socialConnection, tier: 'silver', category: 'health' },
+  { id: 'bp_tracker', name: 'Pressure Watch', description: 'Log blood pressure 10 times', icon: '❤️', earned: false, color: Colors.socialConnection, tier: 'silver', category: 'health' },
+
+  // === Wellness ===
+  { id: 'balanced_day', name: 'Balanced Day', description: 'Log meal, activity, sleep & journal in one day', icon: '☯️', earned: false, color: Colors.primary, tier: 'silver', category: 'wellness' },
+  { id: 'four_pillars', name: 'Four Pillars', description: 'Reach a balanced day 7 times', icon: '🏛️', earned: false, color: Colors.primary, tier: 'gold', category: 'wellness' },
+  { id: 'first_tip', name: 'Curious Mind', description: 'Complete your first daily tip', icon: '💡', earned: false, color: Colors.mood, tier: 'bronze', category: 'wellness' },
+  { id: 'tip_master', name: 'Tip Master', description: 'Complete 10 daily tips', icon: '🎓', earned: false, color: Colors.mood, tier: 'silver', category: 'wellness' },
+
+  // === Milestone / Social ===
+  { id: 'onboarder', name: 'Welcome Aboard', description: 'Complete your onboarding', icon: '🎉', earned: false, color: Colors.primary, tier: 'bronze', category: 'milestone' },
+  { id: 'mission_starter', name: 'Mission Started', description: 'Enroll in your first mission', icon: '🚩', earned: false, color: Colors.primary, tier: 'bronze', category: 'milestone' },
+  { id: 'mission_finisher', name: 'Mission Complete', description: 'Finish your first mission', icon: '🎯', earned: false, color: Colors.primary, tier: 'silver', category: 'milestone' },
+  { id: 'mission_triple', name: 'Triple Threat', description: 'Finish 3 missions', icon: '🏵️', earned: false, color: Colors.primary, tier: 'gold', category: 'milestone' },
+  { id: 'social_butterfly', name: 'Team Player', description: 'Reach top 3 on your team leaderboard', icon: '🦋', earned: false, color: Colors.socialConnection, tier: 'silver', category: 'social' },
+  { id: 'top_dog', name: 'Top of the Pack', description: 'Reach #1 on your team leaderboard', icon: '👑', earned: false, color: Colors.socialConnection, tier: 'gold', category: 'social' },
 ];
+
+const PLANT_CATS = ['whole_grains', 'legumes', 'leafy_greens', 'other_vegetables', 'fruits', 'nuts_seeds'];
+const POSITIVE_KEYWORDS = ['grateful', 'thankful', 'happy', 'joy', 'proud', 'accomplished', 'hopeful', 'love', 'peace', 'calm', 'motivated', 'inspired'];
+
+function computeLongestStreak(sortedDates: string[]): number {
+  if (sortedDates.length === 0) return 0;
+  let longest = 1;
+  let current = 1;
+  for (let i = 1; i < sortedDates.length; i++) {
+    const prev = new Date(sortedDates[i - 1] as string).getTime();
+    const curr = new Date(sortedDates[i] as string).getTime();
+    const diffDays = Math.round((curr - prev) / 86_400_000);
+    if (diffDays === 1) {
+      current++;
+      longest = Math.max(longest, current);
+    } else if (diffDays > 1) {
+      current = 1;
+    }
+  }
+  return longest;
+}
+
+function timeToMinutes(hhmm: string): number {
+  const parts = hhmm.split(':').map(Number);
+  return ((parts[0] ?? 0) * 60) + (parts[1] ?? 0);
+}
+
+/**
+ * Evaluate which badges should be earned for the given user state and return the updated Badge list.
+ * Pure: never un-earns a badge.
+ */
+export function evaluateBadges(state: UserState, dailySteps: number): { badges: Badge[]; newlyEarnedIds: string[] } {
+  const badges = state.badges.map(b => ({ ...b }));
+  const now = new Date().toISOString();
+  const newlyEarnedIds: string[] = [];
+
+  const earn = (id: string) => {
+    const b = badges.find(x => x.id === id);
+    if (b && !b.earned) {
+      b.earned = true;
+      b.earnedDate = now;
+      newlyEarnedIds.push(id);
+    }
+  };
+
+  // Nutrition
+  const mealCount = state.mealLogs.length;
+  if (mealCount >= 1) earn('first_meal');
+  if (mealCount >= 5) earn('five_meals');
+  if (mealCount >= 25) earn('meals_25');
+  if (mealCount >= 50) earn('meals_50');
+  if (mealCount >= 100) earn('meals_100');
+
+  const maxPlants = state.mealLogs.reduce((max, m) => {
+    const p = m.categories.filter(c => PLANT_CATS.includes(c)).length;
+    return p > max ? p : max;
+  }, 0);
+  if (maxPlants >= 3) earn('plant_power');
+  if (maxPlants >= 5) earn('garden_master');
+  if (maxPlants >= 6) earn('rainbow_plate');
+
+  const cleanMeals = state.mealLogs.filter(m => !m.categories.includes('processed_foods')).length;
+  if (cleanMeals >= 10) earn('clean_eater');
+
+  // Plant streak: 7 consecutive days with at least one plant-rich (>=3 plant cats) meal
+  const plantDates = Array.from(new Set(
+    state.mealLogs
+      .filter(m => m.categories.filter(c => PLANT_CATS.includes(c)).length >= 3)
+      .map(m => m.date)
+  )).sort();
+  if (computeLongestStreak(plantDates) >= 7) earn('plant_streak_7');
+
+  // Activity
+  const actCount = state.activityLogs.length;
+  if (actCount >= 1) earn('first_activity');
+  if (actCount >= 10) earn('activity_10');
+  if (actCount >= 25) earn('activity_25');
+  if (actCount >= 50) earn('activity_50');
+  if (actCount >= 100) earn('activity_100');
+
+  const vigorousCount = state.activityLogs.filter(a => a.intensity === 'vigorous').length;
+  if (vigorousCount >= 5) earn('vigorous_5');
+  if (vigorousCount >= 20) earn('vigorous_20');
+
+  const uniqueTypes = new Set(state.activityLogs.map(a => a.type)).size;
+  if (uniqueTypes >= 5) earn('variety_athlete');
+
+  if (state.activityLogs.some(a => a.durationMinutes >= 90)) earn('long_haul');
+
+  // Sleep
+  const sleepCount = state.sleepLogs.length;
+  if (sleepCount >= 1) earn('first_sleep');
+  if (sleepCount >= 7) earn('sleep_master');
+  if (sleepCount >= 30) earn('sleep_30');
+
+  const hasFullEight = state.sleepLogs.some(s => calculateSleepHours(s.bedtime, s.wakeTime) >= 8);
+  if (hasFullEight) earn('full_eight');
+
+  const refreshedCount = state.sleepLogs.filter(s => s.wakeFeeling === 'refreshed').length;
+  if (refreshedCount >= 5) earn('refreshed_5');
+
+  // Consistent bedtime: 7 most recent sleeps, bedtimes within 60 min range
+  if (state.sleepLogs.length >= 7) {
+    const recent = [...state.sleepLogs].sort((a, b) => b.timestamp - a.timestamp).slice(0, 7);
+    const minutes = recent.map(s => timeToMinutes(s.bedtime));
+    const min = Math.min(...minutes);
+    const max = Math.max(...minutes);
+    if (max - min <= 60) earn('sleep_consistent');
+  }
+
+  // Journal
+  const journalCount = state.journalLogs.length;
+  if (journalCount >= 1) earn('first_journal');
+  if (journalCount >= 7) earn('journal_7');
+  if (journalCount >= 30) earn('journal_30');
+
+  const deepEntries = state.journalLogs.filter(j => j.entry.trim().split(/\s+/).length >= 100).length;
+  if (deepEntries >= 5) earn('deep_thinker');
+
+  const positiveEntries = state.journalLogs.filter(j => {
+    const lower = j.entry.toLowerCase();
+    return POSITIVE_KEYWORDS.some(w => lower.includes(w));
+  }).length;
+  if (positiveEntries >= 10) earn('gratitude_master');
+
+  // Points
+  if (state.totalPoints >= 500) earn('points_500');
+  if (state.totalPoints >= 1000) earn('points_1000');
+  if (state.totalPoints >= 5000) earn('points_5000');
+  if (state.totalPoints >= 10000) earn('points_10000');
+
+  // Today points: century / super day
+  const todayStr = new Date().toISOString().split('T')[0] ?? '';
+  const todayPts =
+    [...state.mealLogs, ...state.activityLogs, ...state.sleepLogs, ...state.journalLogs]
+      .filter(l => l.date === todayStr).reduce((s, l) => s + (l.points ?? 0), 0)
+    + state.tipCompletions.filter(t => t.date === todayStr).reduce((s, t) => s + (t.points ?? 0), 0);
+  if (todayPts >= 100) earn('century');
+  if (todayPts >= 200) earn('super_day');
+
+  // Balanced day & four pillars
+  const balancedDays = new Set<string>();
+  const dayHas = (d: string, logs: { date: string }[]) => logs.some(l => l.date === d);
+  const allDays = new Set<string>([
+    ...state.mealLogs.map(l => l.date),
+    ...state.activityLogs.map(l => l.date),
+    ...state.sleepLogs.map(l => l.date),
+    ...state.journalLogs.map(l => l.date),
+  ]);
+  for (const d of allDays) {
+    if (dayHas(d, state.mealLogs) && dayHas(d, state.activityLogs) && dayHas(d, state.sleepLogs) && dayHas(d, state.journalLogs)) {
+      balancedDays.add(d);
+    }
+  }
+  if (balancedDays.size >= 1) earn('balanced_day');
+  if (balancedDays.size >= 7) earn('four_pillars');
+
+  // Steps
+  if (dailySteps >= 10000) earn('step_goal');
+  if (dailySteps >= 15000) earn('fifteen_k');
+  if (dailySteps >= 20000) earn('twenty_k');
+
+  // Streak (any log per day)
+  const sortedDates = Array.from(allDays).sort();
+  const longestStreak = computeLongestStreak(sortedDates);
+  if (longestStreak >= 7) earn('week_streak');
+  if (longestStreak >= 14) earn('two_week_streak');
+  if (longestStreak >= 30) earn('month_streak');
+
+  // Health
+  const markerCount = state.healthMarkers.length;
+  if (markerCount >= 5) earn('health_tracker');
+  if (markerCount >= 25) earn('health_pro');
+  const weights = state.healthMarkers.filter(m => m.markerName === 'Weight').length;
+  if (weights >= 10) earn('weight_logger');
+  const bpReadings = state.healthMarkers.filter(m => m.markerName.toLowerCase().includes('blood pressure') || m.markerName === 'Systolic BP' || m.markerName === 'Diastolic BP').length;
+  if (bpReadings >= 10) earn('bp_tracker');
+
+  // Wellness
+  if (state.tipCompletions.length >= 1) earn('first_tip');
+  if (state.tipCompletions.length >= 10) earn('tip_master');
+
+  // Milestone
+  if (state.onboardingComplete) earn('onboarder');
+  if (state.missionProgress.length >= 1) earn('mission_starter');
+  const completedMissions = state.missionProgress.filter(m => !!m.completedAt).length;
+  if (completedMissions >= 1) earn('mission_finisher');
+  if (completedMissions >= 3) earn('mission_triple');
+
+  return { badges, newlyEarnedIds };
+}
+
+/**
+ * Merge any new badges from DEFAULT_BADGES into an existing user's badges list, preserving earned state.
+ */
+export function reconcileBadges(existing: Badge[] | undefined): Badge[] {
+  const map = new Map<string, Badge>();
+  for (const b of DEFAULT_BADGES) map.set(b.id, { ...b });
+  for (const b of (existing ?? [])) {
+    const cur = map.get(b.id);
+    if (cur) {
+      map.set(b.id, { ...cur, earned: b.earned || cur.earned, earnedDate: b.earnedDate ?? cur.earnedDate });
+    } else {
+      map.set(b.id, b);
+    }
+  }
+  return Array.from(map.values());
+}
 
 export const MOCK_TEAMS: Team[] = [
   {

@@ -134,6 +134,9 @@ export interface SleepLog {
   timestamp: number;
 }
 
+export type BadgeTier = 'bronze' | 'silver' | 'gold' | 'platinum';
+export type BadgeCategory = 'nutrition' | 'activity' | 'sleep' | 'journal' | 'steps' | 'points' | 'streak' | 'social' | 'health' | 'wellness' | 'milestone';
+
 export interface Badge {
   id: string;
   name: string;
@@ -142,6 +145,8 @@ export interface Badge {
   earned: boolean;
   earnedDate?: string;
   color: string;
+  tier?: BadgeTier;
+  category?: BadgeCategory;
 }
 
 export interface TeamMember {
