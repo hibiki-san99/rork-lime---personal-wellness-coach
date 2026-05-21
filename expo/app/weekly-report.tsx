@@ -1,10 +1,14 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, ChevronRight, Lock } from 'lucide-react-native';
+import {
+  ChevronLeft, ChevronRight, Lock, Trophy, Target,
+  TrendingUp, Flame, Apple, Activity, Moon, Brain, Users, Ban, Scale,
+  Leaf,
+} from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { useUser } from '@/context/UserContext';
 import { calculateSleepHours } from '@/constants/data';
@@ -53,15 +57,6 @@ function feelingLabel(score: number, t: (k: string) => string): string {
   return '—';
 }
 
-function trendColor(change: number, preferLower: boolean): string {
-  const improving = preferLower ? change < 0 : change > 0;
-  const worsening = preferLower ? change > 0 : change < 0;
-  if (Math.abs(change) < 0.01) return Colors.physicalActivity;
-  if (improving) return Colors.nutrition;
-  if (worsening) return Colors.riskySubstances;
-  return Colors.physicalActivity;
-}
-
 function moodToEmoji(score: number): string {
   const rounded = Math.max(1, Math.min(5, Math.round(score)));
   return ['😔', '😕', '😐', '🙂', '😄'][rounded - 1] ?? '😐';
@@ -69,7 +64,6 @@ function moodToEmoji(score: number): string {
 
 interface JourneyData {
   title: string;
-  icon: string;
   original: string;
   current: string;
   goal: string;
@@ -104,13 +98,10 @@ export default function WeeklyReportScreen() {
     return { calories: 2000, carbsG: 250, proteinG: 80, fiberG: 28, addedSugarG: 25, saturatedFatG: 22, transFatG: 0 };
   }, [nutrientTargets, profile, medicalHistory]);
 
-  // Energy balance
   const energyBalance = useMemo(() => {
     const totalIn = weekMeals.reduce((s, m) => s + (m.nutrition?.calories ?? 0), 0);
     const weight = profile?.weightKg ?? 60;
-    const stepCalsToday = calculateStepCalories(0, weight);
     const activityCals = weekActivities.reduce((s, a) => s + a.caloriesBurned, 0);
-    void stepCalsToday;
 
     const daysSpanned = 7;
     const estimatedDailySteps = 5000;
@@ -124,7 +115,6 @@ export default function WeeklyReportScreen() {
     return { avgIn, avgOut, net };
   }, [weekMeals, weekActivities, profile?.weightKg]);
 
-  // Nutrition averages
   const nutritionAvg = useMemo(() => {
     const daysLogged = new Set(weekMeals.map(m => m.date)).size || 1;
     const sum = weekMeals.reduce((acc, m) => {
@@ -160,7 +150,6 @@ export default function WeeklyReportScreen() {
     };
   }, [weekMeals]);
 
-  // Pillar data
   const pillarData = useMemo(() => {
     const mealsCount = weekMeals.length;
     const plantsAvg = (() => {
@@ -195,7 +184,25 @@ export default function WeeklyReportScreen() {
     };
   }, [weekMeals, weekActivities, weekSleeps, weekJournals]);
 
-  // Journey card
+  const overall = useMemo(() => {
+    const pillarLevels = [
+      pillarData.nutrition.level,
+      pillarData.activity.level,
+      pillarData.sleep.level,
+      pillarData.stress.level,
+    ];
+    const score = pillarLevels.reduce((s, l) => s + (l === 'good' ? 100 : l === 'mid' ? 60 : 20), 0) / pillarLevels.length;
+    const active = pillarLevels.filter(l => l !== 'low').length;
+    return { pct: Math.round(score), active };
+  }, [pillarData]);
+
+  const motivation = useMemo(() => {
+    if (overall.pct >= 85) return 'You crushed it this week 🏆';
+    if (overall.pct >= 65) return "You're doing great. Keep stacking wins 🔥";
+    if (overall.pct >= 40) return 'Solid start — small daily actions add up 💪';
+    return 'Log a meal or a walk — your first win is close 🌱';
+  }, [overall.pct]);
+
   const journeyData = useMemo((): JourneyData | null => {
     if (!profile) return null;
     const goal: HealthGoal | undefined = profile.healthGoal;
@@ -212,7 +219,6 @@ export default function WeeklyReportScreen() {
       const change = current - original;
       return {
         title: t('weeklyReport.journey.loseWeight'),
-        icon: '⚖️',
         original: `${original.toFixed(1)} kg`,
         current: `${current.toFixed(1)} kg`,
         goal: `${goalW} kg`,
@@ -229,7 +235,6 @@ export default function WeeklyReportScreen() {
       const current = ldls[ldls.length - 1]?.value ?? baseLdl;
       return {
         title: t('weeklyReport.journey.lowerCholesterol'),
-        icon: '📉',
         original: original > 0 ? `${Math.round(original)} mg/dL` : '—',
         current: current > 0 ? `${Math.round(current)} mg/dL` : '—',
         goal: '<100 mg/dL',
@@ -246,7 +251,6 @@ export default function WeeklyReportScreen() {
       const current = gs[gs.length - 1]?.value ?? base;
       return {
         title: t('weeklyReport.journey.manageDiabetes'),
-        icon: '🩸',
         original: original > 0 ? `${Math.round(original)} mg/dL` : '—',
         current: current > 0 ? `${Math.round(current)} mg/dL` : '—',
         goal: '<100 mg/dL',
@@ -261,7 +265,6 @@ export default function WeeklyReportScreen() {
       const chrono = profile.dob ? calculateAge(profile.dob) : 0;
       return {
         title: t('weeklyReport.journey.heartHealth'),
-        icon: '❤️',
         original: ha > 0 ? `${ha} yrs` : '—',
         current: ha > 0 ? `${ha} yrs` : '—',
         goal: `${chrono} yrs`,
@@ -280,7 +283,6 @@ export default function WeeklyReportScreen() {
       const thisAvg = pillarData.sleep.avgHours;
       return {
         title: t('weeklyReport.journey.sleepBetter'),
-        icon: '😴',
         original: baselineAvg > 0 ? `${baselineAvg.toFixed(1)} hrs` : '—',
         current: thisAvg > 0 ? `${thisAvg.toFixed(1)} hrs` : '—',
         goal: '7 hrs',
@@ -299,7 +301,6 @@ export default function WeeklyReportScreen() {
       const curScore = pillarData.sleep.avgFeelingScore;
       return {
         title: t('weeklyReport.journey.energyFocus'),
-        icon: '🧠',
         original: feelingLabel(baseScore, t),
         current: feelingLabel(curScore, t),
         goal: t('sleep.refreshed'),
@@ -312,7 +313,6 @@ export default function WeeklyReportScreen() {
     return null;
   }, [profile, healthMarkers, clinicalMeasurements, heartAgeResult, sleepLogs, pillarData.sleep.avgHours, pillarData.sleep.avgFeelingScore, t]);
 
-  // Wins & focus
   const winAndFocus = useMemo(() => {
     let win = '';
     if (pillarData.sleep.nights >= 7) {
@@ -361,13 +361,6 @@ export default function WeeklyReportScreen() {
     return { win, focus };
   }, [pillarData, healthMarkers, weekMeals, weekActivities, weekJournals, weekSleeps, nutritionAvg, targets, t]);
 
-  const initials = useMemo(() => {
-    if (!profile?.name) return '👤';
-    return profile.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-  }, [profile?.name]);
-
-  const levelDot = (level: string): string => level === 'good' ? '🟢' : level === 'mid' ? '🟡' : '🔴';
-
   const netBalanceState = useMemo(() => {
     if (!energyBalance.avgIn) return 'none';
     if (energyBalance.net < -100) return 'deficit';
@@ -375,388 +368,505 @@ export default function WeeklyReportScreen() {
     return 'balanced';
   }, [energyBalance]);
 
+  const trendDir = (jd: JourneyData): 'good' | 'bad' | 'flat' => {
+    if (jd.trend === 'flat') return 'flat';
+    const improving = jd.preferLower ? jd.currentNum < jd.originalNum : jd.currentNum > jd.originalNum;
+    return improving ? 'good' : 'bad';
+  };
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView edges={['top']} style={styles.safe}>
-        <View style={styles.header}>
+        <View style={styles.topRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} testID="wr-back">
             <ChevronLeft size={22} color={Colors.text} />
           </TouchableOpacity>
-          <View style={styles.headerCenter}>
-            {profile?.avatarUrl ? (
-              <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <Text style={styles.avatarInitials}>{initials}</Text>
-              </View>
-            )}
-            <Text style={styles.userName} numberOfLines={1}>{profile?.name ?? t('common.user')}</Text>
-          </View>
-          <View style={{ width: 32 }} />
+          <View style={{ flex: 1 }} />
+          <View style={{ width: 38 }} />
         </View>
 
-        <View style={styles.weekNav}>
-          <TouchableOpacity onPress={() => setWeekOffset(o => o + 1)} style={styles.navBtn} testID="wr-prev">
-            <ChevronLeft size={18} color={Colors.text} />
-          </TouchableOpacity>
-          <View style={styles.weekTitleWrap}>
-            <Text style={styles.weekTitle}>{t('weeklyReport.weeklyTitle')}</Text>
-            <Text style={styles.weekRange}>
-              {formatDateShort(week.start)} — {formatDateShort(week.end)}
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <Text style={styles.pageTitle}>{t('weeklyReport.weeklyTitle')}</Text>
+          <Text style={styles.pageSub}>
+            {formatDateShort(week.start)} — {formatDateShort(week.end)}
+          </Text>
+
+          {/* Week nav pill */}
+          <View style={styles.weekNav}>
+            <TouchableOpacity onPress={() => setWeekOffset(o => o + 1)} style={styles.navBtn} testID="wr-prev">
+              <ChevronLeft size={18} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.weekNavLabel}>
+              {weekOffset === 0 ? 'This Week' : weekOffset === 1 ? 'Last Week' : `${weekOffset} weeks ago`}
             </Text>
+            <TouchableOpacity
+              onPress={() => setWeekOffset(o => Math.max(0, o - 1))}
+              style={[styles.navBtn, weekOffset === 0 && styles.navBtnDisabled]}
+              disabled={weekOffset === 0}
+              testID="wr-next"
+            >
+              <ChevronRight size={18} color={weekOffset === 0 ? Colors.textTertiary : Colors.text} />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={() => setWeekOffset(o => Math.max(0, o - 1))}
-            style={[styles.navBtn, weekOffset === 0 && styles.navBtnDisabled]}
-            disabled={weekOffset === 0}
-            testID="wr-next"
-          >
-            <ChevronRight size={18} color={weekOffset === 0 ? Colors.textTertiary : Colors.text} />
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Section 1 — Journey */}
-        {journeyData && (
+          {/* Hero progress card */}
+          <View style={styles.heroCard}>
+            <Text style={styles.heroLabel}>This Week's Score</Text>
+            <View style={styles.heroRow}>
+              <Text style={styles.heroBig}>{overall.active}/4</Text>
+              <Text style={styles.heroPct}>{overall.pct}%</Text>
+            </View>
+            <View style={styles.heroBarBg}>
+              <View style={[styles.heroBarFill, { width: `${overall.pct}%` as any }]} />
+            </View>
+            <Text style={styles.heroMsg}>{motivation}</Text>
+          </View>
+
+          {/* Journey card */}
+          {journeyData && (() => {
+            const dir = trendDir(journeyData);
+            const dirColor = dir === 'good' ? Colors.nutrition : dir === 'bad' ? Colors.physicalActivity : Colors.textSecondary;
+            return (
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <View style={[styles.iconTile, { backgroundColor: Colors.sleep }]}>
+                    <Target size={20} color={Colors.white} strokeWidth={2.5} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>{journeyData.title}</Text>
+                    <Text style={styles.cardSub}>Your Journey</Text>
+                  </View>
+                </View>
+                <View style={styles.journeyRow}>
+                  <View style={styles.journeyCol}>
+                    <Text style={styles.journeyLabel}>{t('weeklyReport.journey.original')}</Text>
+                    <Text style={styles.journeyValue}>{journeyData.original}</Text>
+                  </View>
+                  <View style={styles.journeyArrowWrap}>
+                    <View style={[styles.journeyBar, { backgroundColor: dirColor }]} />
+                  </View>
+                  <View style={styles.journeyCol}>
+                    <Text style={styles.journeyLabel}>{t('weeklyReport.journey.current')}</Text>
+                    <Text style={[styles.journeyValue, { color: dirColor }]}>
+                      {journeyData.current}
+                    </Text>
+                  </View>
+                  <View style={styles.journeyCol}>
+                    <Text style={styles.journeyLabel}>{t('weeklyReport.journey.goal')}</Text>
+                    <Text style={styles.journeyValue}>{journeyData.goal}</Text>
+                  </View>
+                </View>
+                <View style={[styles.trendFooter, { backgroundColor: dirColor + '12' }]}>
+                  <TrendingUp size={14} color={dirColor} />
+                  <Text style={[styles.trendFooterText, { color: dirColor }]}>
+                    {dir === 'good' ? (journeyData.preferLower ? t('weeklyReport.journey.trendDown') : t('weeklyReport.journey.trendUp')) :
+                     dir === 'bad' ? (journeyData.preferLower ? t('weeklyReport.journey.trendUp') : t('weeklyReport.journey.trendDown')) :
+                     t('weeklyReport.journey.trendFlat')}
+                  </Text>
+                </View>
+              </View>
+            );
+          })()}
+
+          {/* Energy Balance */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>{journeyData.icon}</Text>
-              <Text style={styles.cardTitle}>{journeyData.title}</Text>
-            </View>
-            <View style={styles.journeyRow}>
-              <View style={styles.journeyCol}>
-                <Text style={styles.journeyLabel}>{t('weeklyReport.journey.original')}</Text>
-                <Text style={styles.journeyValue}>{journeyData.original}</Text>
+              <View style={[styles.iconTile, { backgroundColor: Colors.mood }]}>
+                <Scale size={20} color={Colors.white} strokeWidth={2.5} />
               </View>
-              <View style={styles.journeyArrow}>
-                <View style={[styles.progressBar, { backgroundColor: trendColor(journeyData.currentNum - journeyData.originalNum, journeyData.preferLower) }]} />
-              </View>
-              <View style={styles.journeyCol}>
-                <Text style={styles.journeyLabel}>{t('weeklyReport.journey.current')}</Text>
-                <Text style={[styles.journeyValue, { color: trendColor(journeyData.currentNum - journeyData.originalNum, journeyData.preferLower) }]}>
-                  {journeyData.current}
-                </Text>
-              </View>
-              <View style={styles.journeyCol}>
-                <Text style={styles.journeyLabel}>{t('weeklyReport.journey.goal')}</Text>
-                <Text style={styles.journeyValue}>{journeyData.goal}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{t('weeklyReport.energy.title')}</Text>
+                <Text style={styles.cardSub}>Calories in vs out</Text>
               </View>
             </View>
-            <Text style={[styles.trendLine, { color: trendColor(journeyData.currentNum - journeyData.originalNum, journeyData.preferLower) }]}>
-              {journeyData.trend === 'up' ? (journeyData.preferLower ? t('weeklyReport.journey.trendDown') : t('weeklyReport.journey.trendUp')) :
-               journeyData.trend === 'down' ? (journeyData.preferLower ? t('weeklyReport.journey.trendUp') : t('weeklyReport.journey.trendDown')) :
-               t('weeklyReport.journey.trendFlat')}
-            </Text>
-          </View>
-        )}
-
-        {/* Section 2 — Energy Balance */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{t('weeklyReport.energy.title')}</Text>
-          {weekMeals.length === 0 ? (
-            <Text style={styles.emptyText}>{t('weeklyReport.energy.noData')}</Text>
-          ) : (
-            <>
-              <View style={styles.energyRow}>
-                <View style={styles.energyItem}>
-                  <Text style={styles.energyEmoji}>🍽️</Text>
-                  <Text style={styles.energyValue}>{energyBalance.avgIn.toLocaleString()}</Text>
-                  <Text style={styles.energyLabel}>{t('weeklyReport.energy.in')}</Text>
+            {weekMeals.length === 0 ? (
+              <Text style={styles.emptyText}>{t('weeklyReport.energy.noData')}</Text>
+            ) : (
+              <>
+                <View style={styles.energyRow}>
+                  <View style={styles.energyItem}>
+                    <Text style={styles.energyLabel}>{t('weeklyReport.energy.in')}</Text>
+                    <Text style={styles.energyValue}>{energyBalance.avgIn.toLocaleString()}</Text>
+                    <Text style={styles.energyUnit}>kcal</Text>
+                  </View>
+                  <View style={styles.energyDivider} />
+                  <View style={styles.energyItem}>
+                    <Text style={styles.energyLabel}>{t('weeklyReport.energy.out')}</Text>
+                    <Text style={styles.energyValue}>{energyBalance.avgOut.toLocaleString()}</Text>
+                    <Text style={styles.energyUnit}>kcal</Text>
+                  </View>
+                  <View style={styles.energyDivider} />
+                  <View style={styles.energyItem}>
+                    <Text style={styles.energyLabel}>{t('weeklyReport.energy.net')}</Text>
+                    <Text style={[styles.energyValue, { color: energyBalance.net >= 0 ? Colors.mood : Colors.nutrition }]}>
+                      {energyBalance.net >= 0 ? '+' : ''}{energyBalance.net.toLocaleString()}
+                    </Text>
+                    <Text style={styles.energyUnit}>kcal</Text>
+                  </View>
                 </View>
-                <View style={styles.energyItem}>
-                  <Text style={styles.energyEmoji}>🔥</Text>
-                  <Text style={styles.energyValue}>{energyBalance.avgOut.toLocaleString()}</Text>
-                  <Text style={styles.energyLabel}>{t('weeklyReport.energy.out')}</Text>
-                </View>
-                <View style={styles.energyItem}>
-                  <Text style={styles.energyEmoji}>⚖️</Text>
-                  <Text style={[styles.energyValue, { color: energyBalance.net >= 0 ? Colors.physicalActivity : Colors.nutrition }]}>
-                    {energyBalance.net >= 0 ? '+' : ''}{energyBalance.net.toLocaleString()}
+                <View style={[
+                  styles.bannerFooter,
+                  {
+                    backgroundColor:
+                      netBalanceState === 'deficit' ? Colors.nutrition + '15' :
+                      netBalanceState === 'surplus' ? Colors.mood + '15' : Colors.sleep + '15',
+                  },
+                ]}>
+                  <Text style={[
+                    styles.bannerFooterText,
+                    {
+                      color:
+                        netBalanceState === 'deficit' ? Colors.nutrition :
+                        netBalanceState === 'surplus' ? Colors.mood : Colors.sleep,
+                    },
+                  ]}>
+                    {netBalanceState === 'deficit' ? t('weeklyReport.energy.deficit') :
+                     netBalanceState === 'surplus' ? t('weeklyReport.energy.surplus') :
+                     t('weeklyReport.energy.balanced')}
                   </Text>
-                  <Text style={styles.energyLabel}>{t('weeklyReport.energy.net')}</Text>
                 </View>
-              </View>
-              <View style={[
-                styles.energyBanner,
-                netBalanceState === 'deficit' && styles.bannerGreen,
-                netBalanceState === 'surplus' && styles.bannerOrange,
-                netBalanceState === 'balanced' && styles.bannerTeal,
-              ]}>
-                <Text style={styles.energyBannerText}>
-                  {netBalanceState === 'deficit' ? `✅ ${t('weeklyReport.energy.deficit')}` :
-                   netBalanceState === 'surplus' ? `⚠️ ${t('weeklyReport.energy.surplus')}` :
-                   `✅ ${t('weeklyReport.energy.balanced')}`}
-                </Text>
-              </View>
-            </>
-          )}
-        </View>
+              </>
+            )}
+          </View>
 
-        {/* Section 3 — Nutrition Snapshot */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{t('weeklyReport.nutrition.title')}</Text>
-          {!nutritionAvg.hasData ? (
-            <Text style={styles.emptyText}>{t('weeklyReport.nutrition.noMeals')}</Text>
-          ) : (
-            <>
-              <Text style={styles.nutritionSubhead}>{t('weeklyReport.nutrition.goalsToReach')}</Text>
-              <View style={styles.nutritionGrid}>
-                <NutritionCard emoji="🌾" label={t('weeklyReport.nutrition.carbs')} value={nutritionAvg.carbs} target={targets.carbsG} unit="g" met={nutritionAvg.carbs >= targets.carbsG * 0.8} />
-                <NutritionCard emoji="💪" label={t('weeklyReport.nutrition.protein')} value={nutritionAvg.protein} target={targets.proteinG} unit="g" met={nutritionAvg.protein >= targets.proteinG * 0.8} />
-                <NutritionCard emoji="🥦" label={t('weeklyReport.nutrition.fiber')} value={nutritionAvg.fiber} target={targets.fiberG} unit="g" met={nutritionAvg.fiber >= targets.fiberG * 0.8} />
+          {/* Nutrition Snapshot */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={[styles.iconTile, { backgroundColor: Colors.nutrition }]}>
+                <Leaf size={20} color={Colors.white} strokeWidth={2.5} />
               </View>
-
-              <Text style={[styles.nutritionSubhead, { marginTop: 18 }]}>{t('weeklyReport.nutrition.limitsToStay')}</Text>
-              <View style={styles.nutritionGrid}>
-                <NutritionCard emoji="🍬" label={t('weeklyReport.nutrition.addedSugar')} value={nutritionAvg.addedSugar} target={targets.addedSugarG} unit="g" met={nutritionAvg.addedSugar <= targets.addedSugarG} isLimit />
-                <NutritionCard emoji="🥩" label={t('weeklyReport.nutrition.satFat')} value={nutritionAvg.satFat} target={targets.saturatedFatG} unit="g" met={nutritionAvg.satFat <= targets.saturatedFatG} isLimit />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{t('weeklyReport.nutrition.title')}</Text>
+                <Text style={styles.cardSub}>{nutritionAvg.hasData ? `${weekMeals.length} meals logged` : '—'}</Text>
               </View>
+            </View>
+            {!nutritionAvg.hasData ? (
+              <Text style={styles.emptyText}>{t('weeklyReport.nutrition.noMeals')}</Text>
+            ) : (
+              <>
+                <Text style={styles.subhead}>{t('weeklyReport.nutrition.goalsToReach')}</Text>
+                <NutrientBar label={t('weeklyReport.nutrition.carbs')} value={nutritionAvg.carbs} target={targets.carbsG} unit="g" color={Colors.mood} />
+                <NutrientBar label={t('weeklyReport.nutrition.protein')} value={nutritionAvg.protein} target={targets.proteinG} unit="g" color={Colors.physicalActivity} />
+                <NutrientBar label={t('weeklyReport.nutrition.fiber')} value={nutritionAvg.fiber} target={targets.fiberG} unit="g" color={Colors.nutrition} />
 
-              <View style={styles.plantDiversityRow}>
-                <Text style={styles.plantDiversityLabel}>🌱 {t('weeklyReport.nutrition.plantDiversity')}</Text>
-                <Text style={styles.plantDiversityValue}>
-                  {t('weeklyReport.nutrition.plantsPerDay', { avg: nutritionAvg.plantsPerDay })}
-                </Text>
-                <Text style={styles.plantDiversityCheck}>{nutritionAvg.plantsPerDay >= 5 ? '✅' : '⚠️'}</Text>
-              </View>
-            </>
-          )}
-        </View>
+                <Text style={[styles.subhead, { marginTop: 14 }]}>{t('weeklyReport.nutrition.limitsToStay')}</Text>
+                <NutrientBar label={t('weeklyReport.nutrition.addedSugar')} value={nutritionAvg.addedSugar} target={targets.addedSugarG} unit="g" color={Colors.stressManagement} isLimit />
+                <NutrientBar label={t('weeklyReport.nutrition.satFat')} value={nutritionAvg.satFat} target={targets.saturatedFatG} unit="g" color={Colors.physicalActivity} isLimit />
 
-        {/* Section 4 — Six Pillars */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{t('weeklyReport.pillars.title')}</Text>
-          <PillarRow
-            emoji="🥗"
+                <View style={styles.plantRow}>
+                  <View style={[styles.plantIconTile, { backgroundColor: Colors.nutrition }]}>
+                    <Leaf size={14} color={Colors.white} />
+                  </View>
+                  <Text style={styles.plantLabel}>{t('weeklyReport.nutrition.plantDiversity')}</Text>
+                  <Text style={[styles.plantValue, { color: nutritionAvg.plantsPerDay >= 5 ? Colors.nutrition : Colors.mood }]}>
+                    {t('weeklyReport.nutrition.plantsPerDay', { avg: nutritionAvg.plantsPerDay })}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+
+          {/* Six Pillars */}
+          <Text style={styles.sectionLabel}>{t('weeklyReport.pillars.title')}</Text>
+
+          <PillarCard
+            icon={<Apple size={20} color={Colors.white} strokeWidth={2.5} />}
+            color={Colors.nutrition}
             name={t('weeklyReport.pillars.nutrition')}
             line={t('weeklyReport.pillars.nutritionLine', { meals: pillarData.nutrition.meals, plants: pillarData.nutrition.plantsAvg })}
-            dot={levelDot(pillarData.nutrition.level)}
+            level={pillarData.nutrition.level}
             active={pillarData.nutrition.meals > 0}
           />
-          <PillarRow
-            emoji="🏃"
+          <PillarCard
+            icon={<Activity size={20} color={Colors.white} strokeWidth={2.5} />}
+            color={Colors.physicalActivity}
             name={t('weeklyReport.pillars.activity')}
             line={t('weeklyReport.pillars.activityLine', { sessions: pillarData.activity.sessions, kcal: Math.round(pillarData.activity.kcal) })}
-            dot={levelDot(pillarData.activity.level)}
+            level={pillarData.activity.level}
             active={pillarData.activity.sessions > 0}
           />
-          <PillarRow
-            emoji="😴"
+          <PillarCard
+            icon={<Moon size={20} color={Colors.white} strokeWidth={2.5} />}
+            color={Colors.sleep}
             name={t('weeklyReport.pillars.sleep')}
             line={t('weeklyReport.pillars.sleepLine', {
               nights: pillarData.sleep.nights,
               hours: pillarData.sleep.avgHours.toFixed(1),
               feel: feelingLabel(pillarData.sleep.avgFeelingScore, t),
             })}
-            dot={levelDot(pillarData.sleep.level)}
+            level={pillarData.sleep.level}
             active={pillarData.sleep.nights > 0}
           />
-          <PillarRow
-            emoji="🧠"
+          <PillarCard
+            icon={<Brain size={20} color={Colors.white} strokeWidth={2.5} />}
+            color={Colors.stressManagement}
             name={t('weeklyReport.pillars.stress')}
             line={t('weeklyReport.pillars.stressLine', {
               entries: pillarData.stress.journals,
               emoji: pillarData.stress.avgMood > 0 ? moodToEmoji(pillarData.stress.avgMood) : '—',
             })}
-            dot={levelDot(pillarData.stress.level)}
+            level={pillarData.stress.level}
             active={pillarData.stress.journals > 0}
           />
-          <PillarRow
-            emoji="👥"
+          <PillarCard
+            icon={<Users size={20} color={Colors.white} strokeWidth={2.5} />}
+            color={Colors.socialConnection}
             name={t('weeklyReport.pillars.social')}
             line={t('weeklyReport.pillars.comingSoon')}
-            dot=""
+            level="low"
             active={false}
             locked
           />
-          <PillarRow
-            emoji="🚫"
+          <PillarCard
+            icon={<Ban size={20} color={Colors.white} strokeWidth={2.5} />}
+            color={Colors.riskySubstances}
             name={t('weeklyReport.pillars.substances')}
             line={t('weeklyReport.pillars.comingSoon')}
-            dot=""
+            level="low"
             active={false}
             locked
           />
-        </View>
 
-        {/* Section 5 — Wins & Focus */}
-        <View style={styles.winsRow}>
-          <View style={[styles.winCard, { backgroundColor: '#E8F5E9', borderColor: '#C8E6C9' }]}>
-            <Text style={styles.winHeader}>🏆 {t('weeklyReport.wins.thisWeeksWin')}</Text>
-            <Text style={styles.winText}>{winAndFocus.win}</Text>
+          {/* Wins & Focus */}
+          <Text style={styles.sectionLabel}>Highlights</Text>
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={[styles.iconTile, { backgroundColor: Colors.mood }]}>
+                <Trophy size={20} color={Colors.white} strokeWidth={2.5} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{t('weeklyReport.wins.thisWeeksWin')}</Text>
+                <Text style={styles.cardSub}>{winAndFocus.win}</Text>
+              </View>
+            </View>
           </View>
-          <View style={[styles.winCard, { backgroundColor: '#FFF3E0', borderColor: '#FFE0B2' }]}>
-            <Text style={styles.winHeader}>🎯 {t('weeklyReport.wins.nextWeeksFocus')}</Text>
-            <Text style={styles.winText}>{winAndFocus.focus}</Text>
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={[styles.iconTile, { backgroundColor: Colors.sleep }]}>
+                <Target size={20} color={Colors.white} strokeWidth={2.5} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{t('weeklyReport.wins.nextWeeksFocus')}</Text>
+                <Text style={styles.cardSub}>{winAndFocus.focus}</Text>
+              </View>
+            </View>
           </View>
-        </View>
-
-        <Text style={styles.swipeHint}>{t('weeklyReport.swipeForMore')}</Text>
-      </ScrollView>
+        </ScrollView>
+      </SafeAreaView>
     </View>
   );
 }
 
-interface NutritionCardProps {
-  emoji: string;
+interface NutrientBarProps {
   label: string;
   value: number;
   target: number;
   unit: string;
-  met: boolean;
+  color: string;
   isLimit?: boolean;
 }
 
-function NutritionCard({ emoji, label, value, target, unit, met, isLimit }: NutritionCardProps) {
-  const { t } = useTranslation();
+function NutrientBar({ label, value, target, unit, color, isLimit }: NutrientBarProps) {
+  const pct = Math.min(100, Math.round((value / Math.max(1, target)) * 100));
+  const met = isLimit ? value <= target : value >= target * 0.8;
   return (
-    <View style={[styles.nutritionCard, met ? styles.nutritionCardGood : styles.nutritionCardWarn]}>
-      <Text style={styles.nutritionEmoji}>{emoji}</Text>
-      <Text style={styles.nutritionLabel}>{label}</Text>
-      <Text style={styles.nutritionValue}>{t('weeklyReport.nutrition.avgLabel', { value })}{unit === 'g' ? '' : unit}</Text>
-      <Text style={styles.nutritionTarget}>
-        {isLimit
-          ? t('weeklyReport.nutrition.limitLabel', { value: target })
-          : t('weeklyReport.nutrition.targetLabel', { value: target })}
-      </Text>
-      <Text style={styles.nutritionCheck}>{met ? '✅' : '⚠️'}</Text>
+    <View style={styles.nutrientRow}>
+      <View style={styles.nutrientHeader}>
+        <Text style={styles.nutrientLabel}>{label}</Text>
+        <Text style={styles.nutrientValue}>
+          <Text style={{ color: met ? color : Colors.textSecondary, fontWeight: '800' as const }}>{value}</Text>
+          <Text style={styles.nutrientTarget}> / {target}{unit}</Text>
+        </Text>
+      </View>
+      <View style={styles.nutrientBarBg}>
+        <View style={[styles.nutrientBarFill, { width: `${pct}%` as any, backgroundColor: color }]} />
+      </View>
     </View>
   );
 }
 
-interface PillarRowProps {
-  emoji: string;
+interface PillarCardProps {
+  icon: React.ReactNode;
+  color: string;
   name: string;
   line: string;
-  dot: string;
+  level: string;
   active: boolean;
   locked?: boolean;
 }
 
-function PillarRow({ emoji, name, line, dot, active, locked }: PillarRowProps) {
+function PillarCard({ icon, color, name, line, level, active, locked }: PillarCardProps) {
+  const levelColor = level === 'good' ? Colors.nutrition : level === 'mid' ? Colors.mood : Colors.physicalActivity;
+  const levelLabel = level === 'good' ? 'Strong' : level === 'mid' ? 'OK' : 'Low';
+  const pct = level === 'good' ? 100 : level === 'mid' ? 60 : 20;
+
   return (
-    <View style={[styles.pillarRow, locked && styles.pillarRowLocked]}>
-      <Text style={[styles.pillarEmoji, locked && styles.pillarEmojiLocked]}>{emoji}</Text>
-      <View style={styles.pillarBody}>
-        <View style={styles.pillarTitleRow}>
-          <Text style={[styles.pillarName, locked && styles.pillarNameLocked]}>{name}</Text>
-          {locked && <Lock size={12} color={Colors.textTertiary} />}
+    <View style={[styles.card, locked && { opacity: 0.55 }]}>
+      <View style={styles.cardHeader}>
+        <View style={[styles.iconTile, { backgroundColor: color }]}>
+          {icon}
         </View>
-        <Text style={[styles.pillarLine, locked && styles.pillarLineLocked]}>{line}</Text>
+        <View style={{ flex: 1 }}>
+          <View style={styles.pillarTitleRow}>
+            <Text style={styles.cardTitle}>{name}</Text>
+            {locked && <Lock size={13} color={Colors.textTertiary} />}
+          </View>
+          <Text style={styles.cardSub} numberOfLines={2}>{line}</Text>
+        </View>
+        {active && !locked && (
+          <View style={[styles.levelPill, { backgroundColor: levelColor + '18' }]}>
+            <Text style={[styles.levelPillText, { color: levelColor }]}>{levelLabel}</Text>
+          </View>
+        )}
       </View>
-      {active && <Text style={styles.pillarDot}>{dot}</Text>}
+      {active && !locked && (
+        <View style={styles.pillarBarBg}>
+          <View style={[styles.pillarBarFill, { width: `${pct}%` as any, backgroundColor: color }]} />
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FDFAF3' },
-  safe: { backgroundColor: '#FDFAF3' },
-  header: {
+  container: { flex: 1, backgroundColor: Colors.background },
+  safe: { flex: 1 },
+
+  topRow: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4,
+    paddingHorizontal: 16, paddingTop: 4, paddingBottom: 4,
   },
-  backBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  headerCenter: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  avatar: { width: 36, height: 36, borderRadius: 18 },
-  avatarFallback: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.stressManagement,
-    alignItems: 'center', justifyContent: 'center',
+  backBtn: {
+    width: 38, height: 38, borderRadius: 12,
+    backgroundColor: Colors.card, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: Colors.cardBorder,
   },
-  avatarInitials: { color: Colors.white, fontSize: 14, fontWeight: '700' as const },
-  userName: { fontSize: 15, fontWeight: '600' as const, color: Colors.text, maxWidth: 160 },
+
+  scroll: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 4 },
+
+  pageTitle: { fontSize: 32, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.8 },
+  pageSub: { fontSize: 14, color: Colors.textSecondary, marginTop: 4, marginBottom: 16 },
 
   weekNav: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingVertical: 14,
+    backgroundColor: Colors.card, borderRadius: 14, paddingHorizontal: 8, paddingVertical: 8,
+    borderWidth: 1, borderColor: Colors.cardBorder, marginBottom: 18,
   },
   navBtn: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.card,
+    width: 34, height: 34, borderRadius: 10, backgroundColor: Colors.inputBg,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: Colors.cardBorder,
   },
-  navBtnDisabled: { opacity: 0.4 },
-  weekTitleWrap: { alignItems: 'center', flex: 1 },
-  weekTitle: { fontSize: 20, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.4 },
-  weekRange: { fontSize: 13, color: Colors.textSecondary, marginTop: 2, fontWeight: '500' as const },
+  navBtnDisabled: { opacity: 0.35 },
+  weekNavLabel: { fontSize: 14, fontWeight: '700' as const, color: Colors.text },
 
-  scroll: { padding: 20, paddingTop: 8, paddingBottom: 60 },
+  heroCard: {
+    backgroundColor: Colors.primary, borderRadius: 22, padding: 20, marginBottom: 18,
+    shadowColor: Colors.primary, shadowOpacity: 0.2, shadowRadius: 16, shadowOffset: { width: 0, height: 8 },
+    elevation: 4, overflow: 'hidden',
+  },
+  heroLabel: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, opacity: 0.9 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 },
+  heroBig: { color: Colors.white, fontSize: 38, fontWeight: '800' as const, letterSpacing: -1 },
+  heroPct: { color: Colors.white, fontSize: 40, fontWeight: '800' as const, opacity: 0.28, letterSpacing: -1 },
+  heroBarBg: { height: 8, backgroundColor: 'rgba(255,255,255,0.28)', borderRadius: 4, overflow: 'hidden', marginTop: 10 },
+  heroBarFill: { height: 8, backgroundColor: Colors.white, borderRadius: 4 },
+  heroMsg: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, marginTop: 12, opacity: 0.95 },
+
+  sectionLabel: {
+    fontSize: 13, fontWeight: '700' as const, color: Colors.textSecondary,
+    textTransform: 'uppercase' as const, letterSpacing: 0.6,
+    marginTop: 8, marginBottom: 10, marginLeft: 4,
+  },
 
   card: {
-    backgroundColor: Colors.card, borderRadius: 20, padding: 20, marginBottom: 20,
+    backgroundColor: Colors.card, borderRadius: 18, padding: 16, marginBottom: 12,
     borderWidth: 1, borderColor: Colors.cardBorder,
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#0F172A', shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
     elevation: 1,
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
-  cardIcon: { fontSize: 22 },
-  cardTitle: { fontSize: 16, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.2 },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  iconTile: {
+    width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: Colors.white,
+  },
+  cardTitle: { fontSize: 15, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.2 },
+  cardSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
 
-  journeyRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
+  // Journey
+  journeyRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16 },
   journeyCol: { flex: 1, alignItems: 'center' },
-  journeyArrow: { width: 28, height: 3, justifyContent: 'center' },
-  progressBar: { height: 3, borderRadius: 2, width: '100%' },
-  journeyLabel: { fontSize: 10, color: Colors.textTertiary, marginBottom: 4, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.4 },
-  journeyValue: { fontSize: 17, fontWeight: '800' as const, color: Colors.text },
-  trendLine: { fontSize: 12, marginTop: 12, textAlign: 'center', fontWeight: '600' as const },
-
-  energyRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 16 },
-  energyItem: { flex: 1, alignItems: 'center', backgroundColor: '#FAF8F2', borderRadius: 14, paddingVertical: 14 },
-  energyEmoji: { fontSize: 22, marginBottom: 6 },
-  energyValue: { fontSize: 22, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.4 },
-  energyLabel: { fontSize: 10, color: Colors.textSecondary, marginTop: 4, textAlign: 'center', fontWeight: '600' as const, paddingHorizontal: 4 },
-  energyBanner: { borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1 },
-  bannerGreen: { backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' },
-  bannerOrange: { backgroundColor: '#FFF3E0', borderColor: '#FFCC80' },
-  bannerTeal: { backgroundColor: '#E0F2F1', borderColor: '#80CBC4' },
-  energyBannerText: { fontSize: 13, fontWeight: '700' as const, color: Colors.text },
-
-  emptyText: { fontSize: 13, color: Colors.textSecondary, fontStyle: 'italic' as const, paddingVertical: 8 },
-
-  nutritionSubhead: { fontSize: 12, color: Colors.textSecondary, fontWeight: '700' as const, marginBottom: 10, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
-  nutritionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  nutritionCard: {
-    width: '31%' as any, flexGrow: 1, minWidth: 100, backgroundColor: '#FAF8F2',
-    borderRadius: 14, padding: 12, alignItems: 'center', borderWidth: 1,
+  journeyArrowWrap: { width: 24, height: 3, justifyContent: 'center' },
+  journeyBar: { height: 3, borderRadius: 2, width: '100%' },
+  journeyLabel: {
+    fontSize: 10, color: Colors.textTertiary, marginBottom: 4,
+    fontWeight: '700' as const, textTransform: 'uppercase' as const, letterSpacing: 0.4,
   },
-  nutritionCardGood: { borderColor: '#C8E6C9' },
-  nutritionCardWarn: { borderColor: '#FFE0B2' },
-  nutritionEmoji: { fontSize: 20, marginBottom: 4 },
-  nutritionLabel: { fontSize: 11, color: Colors.textSecondary, fontWeight: '600' as const },
-  nutritionValue: { fontSize: 16, fontWeight: '800' as const, color: Colors.text, marginTop: 3 },
-  nutritionTarget: { fontSize: 10, color: Colors.textTertiary, marginTop: 2 },
-  nutritionCheck: { fontSize: 14, marginTop: 4 },
+  journeyValue: { fontSize: 16, fontWeight: '800' as const, color: Colors.text },
+  trendFooter: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, marginTop: 14, alignSelf: 'flex-start',
+  },
+  trendFooterText: { fontSize: 12, fontWeight: '700' as const },
 
-  plantDiversityRow: {
+  // Energy
+  energyRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 0, marginTop: 16,
+  },
+  energyItem: { flex: 1, alignItems: 'center' },
+  energyDivider: { width: 1, height: 38, backgroundColor: Colors.divider },
+  energyLabel: {
+    fontSize: 10, color: Colors.textTertiary, fontWeight: '700' as const,
+    textTransform: 'uppercase' as const, letterSpacing: 0.4, marginBottom: 6,
+    textAlign: 'center' as const, paddingHorizontal: 4,
+  },
+  energyValue: { fontSize: 20, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.4 },
+  energyUnit: { fontSize: 10, color: Colors.textTertiary, marginTop: 2, fontWeight: '600' as const },
+  bannerFooter: {
+    paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, marginTop: 14,
+  },
+  bannerFooterText: { fontSize: 12, fontWeight: '700' as const },
+
+  emptyText: { fontSize: 13, color: Colors.textSecondary, fontStyle: 'italic' as const, paddingVertical: 8, marginTop: 8 },
+
+  // Nutrition
+  subhead: {
+    fontSize: 11, color: Colors.textSecondary, fontWeight: '700' as const,
+    textTransform: 'uppercase' as const, letterSpacing: 0.5,
+    marginTop: 14, marginBottom: 10,
+  },
+  nutrientRow: { marginBottom: 10 },
+  nutrientHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6,
+  },
+  nutrientLabel: { fontSize: 13, fontWeight: '600' as const, color: Colors.text },
+  nutrientValue: { fontSize: 13 },
+  nutrientTarget: { color: Colors.textTertiary, fontWeight: '500' as const },
+  nutrientBarBg: {
+    height: 6, backgroundColor: Colors.inputBg, borderRadius: 3, overflow: 'hidden',
+  },
+  nutrientBarFill: { height: 6, borderRadius: 3 },
+
+  plantRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#F1F8E9', padding: 14, borderRadius: 12, marginTop: 16,
-    borderWidth: 1, borderColor: '#DCEDC8',
+    backgroundColor: Colors.nutritionLight, padding: 12, borderRadius: 12, marginTop: 12,
   },
-  plantDiversityLabel: { flex: 1, fontSize: 13, fontWeight: '600' as const, color: Colors.text },
-  plantDiversityValue: { fontSize: 13, fontWeight: '800' as const, color: Colors.nutrition },
-  plantDiversityCheck: { fontSize: 16 },
+  plantIconTile: {
+    width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: Colors.white,
+  },
+  plantLabel: { flex: 1, fontSize: 13, fontWeight: '600' as const, color: Colors.text },
+  plantValue: { fontSize: 13, fontWeight: '800' as const },
 
-  pillarRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.divider,
-  },
-  pillarRowLocked: { opacity: 0.5 },
-  pillarEmoji: { fontSize: 24 },
-  pillarEmojiLocked: { opacity: 0.6 },
-  pillarBody: { flex: 1 },
+  // Pillar
   pillarTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  pillarName: { fontSize: 14, fontWeight: '700' as const, color: Colors.text },
-  pillarNameLocked: { color: Colors.textSecondary },
-  pillarLine: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-  pillarLineLocked: { fontStyle: 'italic' as const },
-  pillarDot: { fontSize: 14 },
-
-  winsRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  winCard: { flex: 1, borderRadius: 18, padding: 16, borderWidth: 1, minHeight: 120 },
-  winHeader: { fontSize: 12, fontWeight: '700' as const, color: Colors.text, marginBottom: 8, letterSpacing: -0.1 },
-  winText: { fontSize: 13, color: Colors.text, lineHeight: 18, fontWeight: '500' as const },
-
-  swipeHint: { textAlign: 'center', fontSize: 11, color: Colors.textTertiary, marginTop: 8, fontStyle: 'italic' as const },
+  levelPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  levelPillText: { fontSize: 11, fontWeight: '800' as const, letterSpacing: -0.1 },
+  pillarBarBg: {
+    height: 5, backgroundColor: Colors.inputBg, borderRadius: 3, overflow: 'hidden', marginTop: 14,
+  },
+  pillarBarFill: { height: 5, borderRadius: 3 },
 });
+
+// keep some imports referenced for tree-shake clarity
+void Flame;

@@ -6,7 +6,7 @@ import {
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  ChevronLeft, FileText, Search, Check, X, Upload, Beaker,
+  ChevronLeft, FileText, Search, Check, X, Upload,
   Camera as CameraIcon, ImageIcon, FolderOpen, ChevronDown, ChevronRight,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -353,46 +353,75 @@ IMPORTANT: Also look for the date the lab test was conducted/collected/reported.
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+  const lastTestDate = useMemo(() => {
+    if (groupedByDate.length === 0) return null;
+    return groupedByDate[0]?.[0] ?? null;
+  }, [groupedByDate]);
+
+  const abnormalCount = useMemo(() => {
+    return healthMarkers.filter(m => isAbnormal(m.markerName, m.value, profile?.sex)).length;
+  }, [healthMarkers, profile?.sex]);
+
+  const motivation = useMemo(() => {
+    if (healthMarkers.length === 0) return 'Start tracking to see your trends 🌱';
+    if (abnormalCount === 0) return 'All markers in healthy range 🎉';
+    if (abnormalCount === 1) return '1 marker needs attention — keep tracking 💪';
+    return `${abnormalCount} markers to focus on — small changes add up 🔥`;
+  }, [healthMarkers.length, abnormalCount]);
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.headerBg}>
-        <SafeAreaView edges={['top']}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-              <ChevronLeft size={22} color={Colors.white} />
-            </TouchableOpacity>
-            <View style={styles.headerCenter}>
-              <Text style={styles.headerTitle}>{t('healthMarkers.title')}</Text>
-              <Text style={styles.headerSub}>{healthMarkers.length} measurements logged</Text>
-            </View>
-            <Beaker size={20} color={Colors.white} style={{ opacity: 0.6 }} />
-          </View>
-        </SafeAreaView>
-      </View>
+      <SafeAreaView edges={['top']} style={styles.safe}>
+        <View style={styles.topRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtnLight}>
+            <ChevronLeft size={22} color={Colors.text} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }} />
+          <View style={{ width: 38 }} />
+        </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Text style={styles.pageTitle}>{t('healthMarkers.title')}</Text>
+        <Text style={styles.pageSub}>Track your lab results and body metrics over time</Text>
+
+        {/* Hero progress card */}
+        <View style={styles.heroCard}>
+          <Text style={styles.heroLabel}>Tracked Measurements</Text>
+          <View style={styles.heroRow}>
+            <Text style={styles.heroBig}>{healthMarkers.length}</Text>
+            <Text style={styles.heroPct}>{abnormalCount > 0 ? `${abnormalCount}⚠` : '✓'}</Text>
+          </View>
+          <View style={styles.heroBarBg}>
+            <View style={[styles.heroBarFill, { width: `${Math.min(100, healthMarkers.length * 5)}%` as any }]} />
+          </View>
+          <Text style={styles.heroMsg}>{motivation}</Text>
+          {lastTestDate && (
+            <Text style={styles.heroFootnote}>Last test: {formatDate(lastTestDate)}</Text>
+          )}
+        </View>
+
         <TouchableOpacity
-          style={styles.uploadBtn}
+          style={styles.uploadCard}
           onPress={() => setShowUploadOptions(true)}
           disabled={isParsingPDF}
           activeOpacity={0.7}
         >
-          {isParsingPDF ? (
-            <ActivityIndicator size="small" color={Colors.socialConnection} />
-          ) : (
-            <View style={styles.uploadBtnIcon}>
-              <Upload size={20} color={Colors.white} />
-            </View>
-          )}
+          <View style={[styles.iconTile, { backgroundColor: Colors.primary }]}>
+            {isParsingPDF ? (
+              <ActivityIndicator size="small" color={Colors.white} />
+            ) : (
+              <Upload size={20} color={Colors.white} strokeWidth={2.5} />
+            )}
+          </View>
           <View style={styles.uploadBtnInfo}>
             <Text style={styles.uploadBtnTitle}>Upload Lab Test</Text>
-            <Text style={styles.uploadBtnSub}>Photo, screenshot, or file</Text>
+            <Text style={styles.uploadBtnSub}>Photo, screenshot, or PDF</Text>
           </View>
           <ChevronRight size={18} color={Colors.textTertiary} />
         </TouchableOpacity>
 
-        <Text style={styles.selectTitle}>Select a Marker</Text>
+        <Text style={styles.sectionLabel}>Select a Marker</Text>
 
         <View style={styles.searchBar}>
           <Search size={16} color={Colors.textTertiary} />
@@ -405,7 +434,7 @@ IMPORTANT: Also look for the date the lab test was conducted/collected/reported.
           />
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={{ paddingRight: 16 }}>
           {CATEGORIES.map(cat => (
             <TouchableOpacity
               key={cat.id}
@@ -418,7 +447,7 @@ IMPORTANT: Also look for the date the lab test was conducted/collected/reported.
             </TouchableOpacity>
           ))}
           <TouchableOpacity
-            style={[styles.categoryChip, { backgroundColor: Colors.stressManagementLight, borderColor: Colors.stressManagement + '30' }]}
+            style={[styles.categoryChip, { borderColor: Colors.primary + '40' }]}
             onPress={() => {
               setShowCustomModal(true);
               setCustomName('');
@@ -427,7 +456,7 @@ IMPORTANT: Also look for the date the lab test was conducted/collected/reported.
               setNotes('');
             }}
           >
-            <Text style={[styles.categoryText, { color: Colors.stressManagement }]}>+ Custom</Text>
+            <Text style={[styles.categoryText, { color: Colors.primary }]}>+ Custom</Text>
           </TouchableOpacity>
         </ScrollView>
 
@@ -448,7 +477,7 @@ IMPORTANT: Also look for the date the lab test was conducted/collected/reported.
 
         {groupedByDate.length > 0 && (
           <>
-            <Text style={styles.historyTitle}>Recent Measurements</Text>
+            <Text style={styles.sectionLabel}>Recent Measurements</Text>
             {groupedByDate.map(([date, entries], idx) => (
               <CollapsibleDateGroup
                 key={date}
@@ -473,6 +502,7 @@ IMPORTANT: Also look for the date the lab test was conducted/collected/reported.
           </View>
         )}
       </ScrollView>
+      </SafeAreaView>
 
       <Modal visible={showAddModal} animationType="slide" transparent onRequestClose={() => setShowAddModal(false)}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -680,57 +710,86 @@ IMPORTANT: Also look for the date the lab test was conducted/collected/reported.
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  headerBg: { backgroundColor: '#00695C' },
-  header: {
-    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14,
+  safe: { flex: 1 },
+  topRow: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 16, paddingTop: 4, paddingBottom: 4,
   },
-  backBtn: { padding: 4 },
-  headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.white },
-  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
-  scroll: { padding: 20, paddingBottom: 40 },
-  uploadBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: Colors.card, borderRadius: 14, padding: 16, marginBottom: 20,
+  backBtnLight: {
+    width: 38, height: 38, borderRadius: 12,
+    backgroundColor: Colors.card, alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: Colors.cardBorder,
   },
-  uploadBtnIcon: {
-    width: 44, height: 44, borderRadius: 13, backgroundColor: Colors.socialConnection,
-    alignItems: 'center', justifyContent: 'center',
+  scroll: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 4 },
+
+  pageTitle: { fontSize: 32, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.8 },
+  pageSub: { fontSize: 14, color: Colors.textSecondary, marginTop: 4, marginBottom: 18 },
+
+  heroCard: {
+    backgroundColor: Colors.primary, borderRadius: 22, padding: 20, marginBottom: 18,
+    shadowColor: Colors.primary, shadowOpacity: 0.2, shadowRadius: 16, shadowOffset: { width: 0, height: 8 },
+    elevation: 4, overflow: 'hidden',
+  },
+  heroLabel: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, opacity: 0.9 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 },
+  heroBig: { color: Colors.white, fontSize: 38, fontWeight: '800' as const, letterSpacing: -1 },
+  heroPct: { color: Colors.white, fontSize: 32, fontWeight: '800' as const, opacity: 0.28, letterSpacing: -1 },
+  heroBarBg: { height: 8, backgroundColor: 'rgba(255,255,255,0.28)', borderRadius: 4, overflow: 'hidden', marginTop: 10 },
+  heroBarFill: { height: 8, backgroundColor: Colors.white, borderRadius: 4 },
+  heroMsg: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, marginTop: 12, opacity: 0.95 },
+  heroFootnote: { color: Colors.white, fontSize: 11, fontWeight: '500' as const, marginTop: 4, opacity: 0.75 },
+
+  iconTile: {
+    width: 44, height: 44, borderRadius: 14, alignItems: 'center' as const, justifyContent: 'center' as const,
+    borderWidth: 2, borderColor: Colors.white,
+  },
+  uploadCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: Colors.card, borderRadius: 18, padding: 14, marginBottom: 20,
+    borderWidth: 1, borderColor: Colors.cardBorder,
+    shadowColor: '#0F172A', shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
   },
   uploadBtnInfo: { flex: 1 },
   uploadBtnTitle: { fontSize: 15, fontWeight: '700' as const, color: Colors.text },
   uploadBtnSub: { fontSize: 12, color: Colors.textTertiary, marginTop: 2 },
-  selectTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text, marginBottom: 12 },
+  sectionLabel: {
+    fontSize: 13, fontWeight: '700' as const, color: Colors.textSecondary,
+    textTransform: 'uppercase' as const, letterSpacing: 0.6,
+    marginBottom: 10, marginTop: 6, marginLeft: 4,
+  },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: Colors.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
+    backgroundColor: Colors.card, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12,
     borderWidth: 1, borderColor: Colors.cardBorder, marginBottom: 12,
   },
   searchInput: { flex: 1, fontSize: 14, color: Colors.text },
   categoryScroll: { marginBottom: 14 },
   categoryChip: {
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+    paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20,
     backgroundColor: Colors.card, marginRight: 8,
     borderWidth: 1, borderColor: Colors.cardBorder,
   },
   categoryChipActive: {
-    backgroundColor: '#00897B', borderColor: '#00897B',
+    backgroundColor: Colors.primary, borderColor: Colors.primary,
   },
-  categoryText: { fontSize: 13, fontWeight: '600' as const, color: Colors.textSecondary },
+  categoryText: { fontSize: 13, fontWeight: '700' as const, color: Colors.textSecondary },
   categoryTextActive: { color: Colors.white },
-  presetGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
+  presetGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 18 },
   presetCard: {
-    width: '31%' as any, backgroundColor: Colors.card, borderRadius: 14, padding: 12,
+    width: '31%' as any, backgroundColor: Colors.card, borderRadius: 16, padding: 14,
     alignItems: 'center', borderWidth: 1, borderColor: Colors.cardBorder,
+    shadowColor: '#0F172A', shadowOpacity: 0.03, shadowRadius: 8, shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
-  presetIcon: { fontSize: 22, marginBottom: 6 },
-  presetName: { fontSize: 11, fontWeight: '600' as const, color: Colors.text, textAlign: 'center', lineHeight: 15 },
-  presetUnit: { fontSize: 10, color: Colors.textTertiary, marginTop: 3 },
-  historyTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text, marginBottom: 14, marginTop: 8 },
+  presetIcon: { fontSize: 24, marginBottom: 6 },
+  presetName: { fontSize: 11, fontWeight: '700' as const, color: Colors.text, textAlign: 'center', lineHeight: 15 },
+  presetUnit: { fontSize: 10, color: Colors.textTertiary, marginTop: 3, fontWeight: '500' as const },
   collapsibleGroup: {
-    backgroundColor: Colors.card, borderRadius: 14, marginBottom: 10,
+    backgroundColor: Colors.card, borderRadius: 18, marginBottom: 10,
     borderWidth: 1, borderColor: Colors.cardBorder, overflow: 'hidden',
+    shadowColor: '#0F172A', shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
   },
   collapsibleHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -774,7 +833,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'baseline', gap: 4,
   },
   measurementValue: {
-    fontSize: 16, fontWeight: '700' as const, color: '#00897B',
+    fontSize: 16, fontWeight: '700' as const, color: Colors.primary,
   },
   measurementValueAbnormal: {
     color: '#E53935',
@@ -809,7 +868,7 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#00897B', paddingVertical: 16, borderRadius: 14, gap: 8, marginTop: 8,
+    backgroundColor: Colors.primary, paddingVertical: 16, borderRadius: 14, gap: 8, marginTop: 8,
   },
   saveBtnText: { fontSize: 16, fontWeight: '700' as const, color: Colors.white },
   parsedModalContent: {
@@ -825,7 +884,7 @@ const styles = StyleSheet.create({
   parsedLeft: { flex: 1 },
   parsedName: { fontSize: 14, fontWeight: '600' as const, color: Colors.text },
   parsedUnit: { fontSize: 11, color: Colors.textTertiary, marginTop: 1 },
-  parsedValue: { fontSize: 18, fontWeight: '800' as const, color: '#00897B', marginRight: 12 },
+  parsedValue: { fontSize: 18, fontWeight: '800' as const, color: Colors.primary, marginRight: 12 },
   parsedActions: { flexDirection: 'row', gap: 12, marginTop: 16 },
   parsedCancelBtn: {
     flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: 12,
@@ -834,7 +893,7 @@ const styles = StyleSheet.create({
   parsedCancelText: { fontSize: 15, fontWeight: '600' as const, color: Colors.textSecondary },
   parsedConfirmBtn: {
     flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 14, borderRadius: 12, backgroundColor: '#00897B', gap: 6,
+    paddingVertical: 14, borderRadius: 12, backgroundColor: Colors.primary, gap: 6,
   },
   parsedConfirmText: { fontSize: 15, fontWeight: '700' as const, color: Colors.white },
   uploadOptionsContent: {
@@ -860,7 +919,7 @@ const styles = StyleSheet.create({
   },
   testDateLabel: { fontSize: 13, fontWeight: '600' as const, color: Colors.text },
   testDateInput: {
-    flex: 1, fontSize: 14, fontWeight: '600' as const, color: '#00897B',
+    flex: 1, fontSize: 14, fontWeight: '600' as const, color: Colors.primary,
     backgroundColor: Colors.white, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6,
     borderWidth: 1, borderColor: Colors.inputBorder,
   },
