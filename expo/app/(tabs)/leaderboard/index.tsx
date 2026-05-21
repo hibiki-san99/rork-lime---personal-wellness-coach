@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import Colors from '@/constants/colors';
 import { useUser } from '@/context/UserContext';
 import { useAuth } from '@/context/AuthContext';
+import { resilientFetch } from '@/utils/resilientFetch';
 
 
 interface LeaderboardParticipant {
@@ -46,26 +47,13 @@ export default function LeaderboardScreen() {
         activeToken = await refreshToken();
       }
       if (!activeToken) throw new Error('Not signed in');
-      const fetchOnce = async (tok: string) => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 20000);
-        try {
-          return await fetch(`${baseUrl}/api/leaderboard`, {
-            headers: { 'Authorization': `Bearer ${tok}` },
-            signal: controller.signal,
-          });
-        } finally {
-          clearTimeout(timeout);
-        }
-      };
-      let res: Response;
-      try {
-        res = await fetchOnce(activeToken);
-      } catch {
-        // brief retry once for cold-start / transient failures
-        await new Promise(r => setTimeout(r, 1500));
-        res = await fetchOnce(activeToken);
-      }
+      const fetchOnce = (tok: string) =>
+        resilientFetch(`${baseUrl}/api/leaderboard`, {
+          headers: { 'Authorization': `Bearer ${tok}` },
+          maxRetries: 3,
+          retryDelayMs: 2000,
+        });
+      let res = await fetchOnce(activeToken);
       if (res.status === 401) {
         const fresh = await refreshToken();
         if (fresh) res = await fetchOnce(fresh);

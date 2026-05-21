@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Footprints, Award, TrendingUp } from 'lucide-react-native';
 import { Pedometer } from 'expo-sensors';
 import Colors from '@/constants/colors';
 
@@ -202,47 +202,79 @@ export default function StepsHistoryScreen() {
     return index % 15 === 0 || index === total - 1;
   }, [period]);
 
+  const todayStr = useMemo(() => formatDate(new Date()), []);
+  const todaySteps = useMemo(() => stepsMap[todayStr] ?? 0, [stepsMap, todayStr]);
+  const todayPct = useMemo(() => Math.min(100, (todaySteps / STEP_GOAL) * 100), [todaySteps]);
+  const motivation = useMemo(() => {
+    if (todaySteps === 0) return 'Get moving — every step counts 🌱';
+    if (todaySteps < 3000) return 'Warming up. Keep going 💪';
+    if (todaySteps < 7000) return "Halfway there. You're doing great 🔥";
+    if (todaySteps < STEP_GOAL) return 'Almost at 10k. Push through 🚀';
+    return 'Daily goal smashed. Strong work 🏆';
+  }, [todaySteps]);
+  const daysHitGoal = useMemo(() => daysWithSteps.filter(d => d.steps >= STEP_GOAL).length, [daysWithSteps]);
+
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <View style={styles.header}>
+        <View style={styles.topBar}>
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backBtn}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             testID="steps-history-back"
           >
-            <ArrowLeft size={24} color={Colors.text} />
+            <ArrowLeft size={20} color={Colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Steps History</Text>
-          <View style={{ width: 40 }} />
-        </View>
-
-        <View style={styles.tabRow}>
-          {PERIODS.map(p => (
-            <TouchableOpacity
-              key={p.key}
-              style={[styles.tab, period === p.key && styles.tabActive]}
-              onPress={() => setPeriod(p.key)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.tabText, period === p.key && styles.tabTextActive]}>
-                {p.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
         </View>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
+          <Text style={styles.pageTitle}>Steps History</Text>
+          <Text style={styles.pageSub}>Track your daily movement and trends</Text>
+
+          {/* Hero card */}
+          <View style={styles.heroCard}>
+            <Text style={styles.heroLabel}>Today's Steps</Text>
+            <View style={styles.heroRow}>
+              <Text style={styles.heroBig}>{todaySteps.toLocaleString()}</Text>
+              <Text style={styles.heroPct}>{Math.round(todayPct)}%</Text>
+            </View>
+            <View style={styles.heroBarBg}>
+              <View style={[styles.heroBarFill, { width: `${todayPct}%` as any }]} />
+            </View>
+            <Text style={styles.heroMsg}>{motivation}</Text>
+          </View>
+
+          <View style={styles.tabRow}>
+            {PERIODS.map(p => (
+              <TouchableOpacity
+                key={p.key}
+                style={[styles.tab, period === p.key && styles.tabActive]}
+                onPress={() => setPeriod(p.key)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.tabText, period === p.key && styles.tabTextActive]}>
+                  {p.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
+              <View style={[styles.statTile, { backgroundColor: Colors.physicalActivity, shadowColor: Colors.physicalActivity }]}>
+                <TrendingUp size={14} color={Colors.white} />
+              </View>
               <Text style={styles.statLabel}>Daily Avg</Text>
               <Text style={styles.statValue}>{stats.average.toLocaleString()}</Text>
             </View>
             <View style={styles.statCard}>
+              <View style={[styles.statTile, { backgroundColor: Colors.mood, shadowColor: Colors.mood }]}>
+                <Award size={14} color={Colors.white} />
+              </View>
               <Text style={styles.statLabel}>Best Day</Text>
               <Text style={styles.statValue}>
                 {stats.bestDay ? stats.bestDay.steps.toLocaleString() : '-'}
@@ -252,8 +284,12 @@ export default function StepsHistoryScreen() {
               )}
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statLabel}>Total</Text>
-              <Text style={styles.statValue}>{stats.total.toLocaleString()}</Text>
+              <View style={[styles.statTile, { backgroundColor: Colors.primary, shadowColor: Colors.primary }]}>
+                <Footprints size={14} color={Colors.white} />
+              </View>
+              <Text style={styles.statLabel}>Goals Hit</Text>
+              <Text style={styles.statValue}>{daysHitGoal}</Text>
+              <Text style={styles.statSub}>of {daysWithSteps.length} days</Text>
             </View>
           </View>
 
@@ -301,12 +337,12 @@ export default function StepsHistoryScreen() {
                           : 0;
                         const meetsGoal = day.steps >= STEP_GOAL;
                         const barColor = meetsGoal
-                          ? '#43A047'
+                          ? Colors.primary
                           : day.isToday
                           ? Colors.physicalActivity
                           : day.isYesterday
-                          ? '#FFB74D'
-                          : '#FFCC80';
+                          ? '#FBBF77'
+                          : '#FCD9B6';
 
                         const barWidth = period === 'week'
                           ? Math.floor((chartContentWidth - (dayDataList.length - 1) * 8) / dayDataList.length)
@@ -374,83 +410,89 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  topBar: {
+    flexDirection: 'row' as const,
+    paddingHorizontal: 20, paddingTop: 4, paddingBottom: 4,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: Colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    alignItems: 'center' as const, justifyContent: 'center' as const,
+    borderWidth: 1, borderColor: Colors.cardBorder,
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700' as const,
-    color: Colors.text,
-    letterSpacing: -0.3,
+  pageTitle: { fontSize: 32, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.8 },
+  pageSub: { fontSize: 14, color: Colors.textSecondary, marginTop: 4, marginBottom: 20 },
+
+  heroCard: {
+    borderRadius: 22, padding: 20, marginBottom: 18,
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary, shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
+  heroLabel: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, opacity: 0.9 },
+  heroRow: { flexDirection: 'row' as const, alignItems: 'flex-end' as const, justifyContent: 'space-between' as const, marginTop: 4 },
+  heroBig: { color: Colors.white, fontSize: 38, fontWeight: '800' as const, letterSpacing: -1 },
+  heroPct: { color: Colors.white, fontSize: 26, fontWeight: '800' as const, opacity: 0.55, letterSpacing: -0.6 },
+  heroBarBg: { height: 8, backgroundColor: 'rgba(255,255,255,0.28)', borderRadius: 4, overflow: 'hidden' as const, marginTop: 12 },
+  heroBarFill: { height: 8, backgroundColor: Colors.white, borderRadius: 4 },
+  heroMsg: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, marginTop: 12, opacity: 0.95 },
+
   tabRow: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    backgroundColor: Colors.inputBg,
-    borderRadius: 12,
-    padding: 3,
+    flexDirection: 'row' as const,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 4,
     marginBottom: 16,
+    borderWidth: 1, borderColor: Colors.cardBorder,
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
   },
   tab: {
     flex: 1,
     paddingVertical: 10,
-    alignItems: 'center',
+    alignItems: 'center' as const,
     borderRadius: 10,
   },
   tabActive: {
-    backgroundColor: Colors.card,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: Colors.primary,
   },
   tabText: {
     fontSize: 13,
     fontWeight: '600' as const,
-    color: Colors.textTertiary,
+    color: Colors.textSecondary,
   },
   tabTextActive: {
-    color: Colors.text,
+    color: Colors.white,
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingBottom: 40,
+    paddingTop: 8,
   },
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: 'row' as const,
     gap: 10,
     marginBottom: 16,
   },
   statCard: {
     flex: 1,
     backgroundColor: Colors.card,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    alignItems: 'flex-start' as const,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
+  },
+  statTile: {
+    width: 30, height: 30, borderRadius: 10,
+    alignItems: 'center' as const, justifyContent: 'center' as const,
+    borderWidth: 2, borderColor: Colors.white, marginBottom: 8,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 3,
   },
   statLabel: {
     fontSize: 11,
     fontWeight: '600' as const,
-    color: Colors.textTertiary,
-    textTransform: 'uppercase' as const,
-    letterSpacing: 0.5,
+    color: Colors.textSecondary,
     marginBottom: 4,
   },
   statValue: {
@@ -462,15 +504,15 @@ const styles = StyleSheet.create({
   statSub: {
     fontSize: 11,
     fontWeight: '500' as const,
-    color: Colors.physicalActivity,
+    color: Colors.textTertiary,
     marginTop: 2,
   },
   chartCard: {
     backgroundColor: Colors.card,
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
   chartContainer: {
     flexDirection: 'row',
@@ -506,15 +548,15 @@ const styles = StyleSheet.create({
     height: 1,
     borderStyle: 'dashed' as const,
     borderWidth: 1,
-    borderColor: '#43A047',
+    borderColor: Colors.primary,
     opacity: 0.4,
   },
   goalLineLabel: {
     fontSize: 10,
     fontWeight: '700' as const,
-    color: '#43A047',
+    color: Colors.primary,
     marginLeft: 4,
-    opacity: 0.6,
+    opacity: 0.7,
   },
   barsContainer: {
     flexDirection: 'row',
@@ -546,11 +588,11 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     backgroundColor: Colors.card,
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 40,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    alignItems: 'center' as const,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
   loadingText: {
     fontSize: 14,
