@@ -212,13 +212,13 @@ export default function MarkerDetailScreen() {
               <Text style={styles.latestValue}>{latestEntry.value}</Text>
               <Text style={styles.latestUnit}>{latestEntry.unit}</Text>
               {change && (
-                <View style={[styles.changeBadge, { backgroundColor: change.isUp ? '#FFEBEE' : '#E8F5E9' }]}>
+                <View style={[styles.changeBadge, { backgroundColor: change.isUp ? Colors.physicalActivityLight : Colors.primaryLight }]}>
                   {change.isUp ? (
-                    <TrendingUp size={12} color="#E53935" />
+                    <TrendingUp size={12} color={Colors.error} />
                   ) : (
-                    <TrendingDown size={12} color="#43A047" />
+                    <TrendingDown size={12} color={Colors.primaryDark} />
                   )}
-                  <Text style={[styles.changeText, { color: change.isUp ? '#E53935' : '#43A047' }]}>
+                  <Text style={[styles.changeText, { color: change.isUp ? Colors.error : Colors.primaryDark }]}>
                     {change.isUp ? '+' : ''}{change.pct.toFixed(1)}%
                   </Text>
                 </View>
@@ -266,7 +266,7 @@ export default function MarkerDetailScreen() {
                                 {
                                   height: barHeight,
                                   width: BAR_WIDTH,
-                                  backgroundColor: abnormal ? '#E53935' : isLast ? '#00695C' : '#80CBC4',
+                                  backgroundColor: abnormal ? Colors.error : isLast ? Colors.primaryDark : Colors.primary + '60',
                                   borderRadius: 4,
                                 },
                               ]}
@@ -383,7 +383,7 @@ export default function MarkerDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  headerBg: { backgroundColor: '#00695C' },
+  headerBg: { backgroundColor: Colors.primary },
   header: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14,
   },
@@ -393,27 +393,29 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
   scroll: { padding: 20, paddingBottom: 40 },
   latestCard: {
-    backgroundColor: Colors.card, borderRadius: 16, padding: 20, marginBottom: 14,
-    borderWidth: 1, borderColor: Colors.cardBorder,
+    backgroundColor: Colors.card, borderRadius: 22, padding: 20, marginBottom: 14,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 14, elevation: 2,
   },
   latestLabel: { fontSize: 12, fontWeight: '600' as const, color: Colors.textTertiary, marginBottom: 6, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   latestRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  latestValue: { fontSize: 36, fontWeight: '800' as const, color: '#00695C' },
+  latestValue: { fontSize: 36, fontWeight: '800' as const, color: Colors.primaryDark, letterSpacing: -0.8 },
   latestUnit: { fontSize: 16, fontWeight: '500' as const, color: Colors.textSecondary },
   changeBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginLeft: 8,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, marginLeft: 8,
   },
   changeText: { fontSize: 12, fontWeight: '700' as const },
   latestDate: { fontSize: 13, color: Colors.textTertiary, marginTop: 6 },
   singleMeasurementCard: {
-    backgroundColor: '#FFF8E1', borderRadius: 12, padding: 16, marginBottom: 14,
-    borderWidth: 1, borderColor: '#FFE082',
+    backgroundColor: Colors.moodLight, borderRadius: 14, padding: 16, marginBottom: 14,
+    borderWidth: 1, borderColor: Colors.mood + '40',
   },
-  singleMeasurementText: { fontSize: 13, color: '#F57F17', fontWeight: '600' as const, textAlign: 'center' },
+  singleMeasurementText: { fontSize: 13, color: Colors.mood, fontWeight: '700' as const, textAlign: 'center' },
   chartCard: {
-    backgroundColor: Colors.card, borderRadius: 16, padding: 16, marginBottom: 14,
-    borderWidth: 1, borderColor: Colors.cardBorder,
+    backgroundColor: Colors.card, borderRadius: 22, padding: 16, marginBottom: 14,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 14, elevation: 2,
   },
   chartTitle: { fontSize: 15, fontWeight: '700' as const, color: Colors.text, marginBottom: 12 },
   chartContainer: { flexDirection: 'row' },
@@ -439,13 +441,15 @@ const styles = StyleSheet.create({
   barValue: { fontSize: 9, fontWeight: '600' as const, color: Colors.textSecondary, marginTop: 1 },
   addMeasurementBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#00695C', paddingVertical: 15, borderRadius: 14, gap: 8, marginBottom: 20,
+    backgroundColor: Colors.primary, paddingVertical: 16, borderRadius: 16, gap: 8, marginBottom: 20,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.28, shadowRadius: 14, elevation: 4,
   },
   addMeasurementText: { fontSize: 16, fontWeight: '700' as const, color: Colors.white },
   pastTitle: { fontSize: 17, fontWeight: '700' as const, color: Colors.text, marginBottom: 12 },
   collapsibleGroup: {
-    backgroundColor: Colors.card, borderRadius: 14, marginBottom: 10,
-    borderWidth: 1, borderColor: Colors.cardBorder, overflow: 'hidden',
+    backgroundColor: Colors.card, borderRadius: 18, marginBottom: 10,
+    borderWidth: 1, borderColor: '#F1F3F6', overflow: 'hidden',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 1,
   },
   collapsibleHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -469,13 +473,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.divider,
   },
   historyLeft: { flex: 1 },
-  historyValue: { fontSize: 16, fontWeight: '700' as const, color: '#00897B' },
+  historyValue: { fontSize: 16, fontWeight: '700' as const, color: Colors.primaryDark },
   historyUnit: { fontSize: 12, fontWeight: '500' as const, color: Colors.textTertiary },
   historyNotes: { fontSize: 12, color: Colors.textTertiary, marginTop: 2 },
   abnormalBadge: {
-    backgroundColor: '#FFEBEE', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
+    backgroundColor: Colors.physicalActivityLight, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8,
   },
-  abnormalText: { fontSize: 11, fontWeight: '600' as const, color: '#E53935' },
+  abnormalText: { fontSize: 11, fontWeight: '700' as const, color: Colors.error },
   emptyState: { alignItems: 'center', paddingVertical: 40 },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text },
@@ -511,7 +515,8 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#00695C', paddingVertical: 16, borderRadius: 14, gap: 8, marginTop: 8,
+    backgroundColor: Colors.primary, paddingVertical: 16, borderRadius: 14, gap: 8, marginTop: 8,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12, elevation: 3,
   },
   saveBtnText: { fontSize: 16, fontWeight: '700' as const, color: Colors.white },
 });

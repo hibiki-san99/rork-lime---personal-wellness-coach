@@ -142,10 +142,6 @@ export default function TipsScreen() {
                     )}
                   </View>
                   <View style={styles.insightBody}>
-                    <View style={[styles.pillarBadge, { backgroundColor: tip.color + '18' }]}>
-                      <View style={[styles.pillarDot, { backgroundColor: tip.color }]} />
-                      <Text style={[styles.pillarText, { color: tip.color }]}>{pillarLabel(tip.pillar)}</Text>
-                    </View>
                     <Text style={[styles.tipText, done && styles.tipTextDone]}>
                       {tipContent(tip.id, tip.tip)}
                     </Text>

@@ -33,23 +33,39 @@ type ViewMode = 'teams' | 'individuals';
 
 export default function LeaderboardScreen() {
   const { profile, totalPoints } = useUser();
-  const { token } = useAuth();
+  const { token, refreshToken } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>('teams');
 
   const leaderboardQuery = useQuery<LeaderboardResponse>({
     queryKey: ['leaderboard'],
     queryFn: async () => {
       const baseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
-      if (!baseUrl || !token) throw new Error('Not connected');
-      const res = await resilientFetch(`${baseUrl}/api/leaderboard`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+      if (!baseUrl) throw new Error('Backend not configured');
+      let activeToken = token;
+      if (!activeToken) {
+        activeToken = await refreshToken();
+      }
+      if (!activeToken) throw new Error('Not signed in');
+      let res = await resilientFetch(`${baseUrl}/api/leaderboard`, {
+        headers: { 'Authorization': `Bearer ${activeToken}` },
+        maxRetries: 2,
       });
+      if (res.status === 401) {
+        const fresh = await refreshToken();
+        if (fresh) {
+          res = await resilientFetch(`${baseUrl}/api/leaderboard`, {
+            headers: { 'Authorization': `Bearer ${fresh}` },
+            maxRetries: 2,
+          });
+        }
+      }
       if (!res.ok) throw new Error(`Server ${res.status}`);
       return res.json() as Promise<LeaderboardResponse>;
     },
     enabled: !!token,
     refetchOnMount: true,
     staleTime: 30_000,
+    retry: 1,
   });
 
   const participants = useMemo<LeaderboardParticipant[]>(() => {
@@ -182,7 +198,12 @@ export default function LeaderboardScreen() {
             <View style={styles.errorBox}>
               <Text style={styles.errorEmoji}>⚠️</Text>
               <Text style={styles.errorTitle}>Could not load leaderboard</Text>
-              <Text style={styles.errorSub}>Pull down to retry</Text>
+              <Text style={styles.errorSub}>
+                {leaderboardQuery.error instanceof Error ? leaderboardQuery.error.message : 'Pull down to retry'}
+              </Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={onRefresh} activeOpacity={0.8}>
+                <Text style={styles.retryBtnText}>Retry</Text>
+              </TouchableOpacity>
             </View>
           ) : viewMode === 'teams' ? (
             <>
@@ -373,7 +394,13 @@ const styles = StyleSheet.create({
   errorBox: { alignItems: 'center' as const, paddingVertical: 40, gap: 8 },
   errorEmoji: { fontSize: 36 },
   errorTitle: { fontSize: 15, fontWeight: '700' as const, color: Colors.text },
-  errorSub: { fontSize: 13, color: Colors.textSecondary },
+  errorSub: { fontSize: 13, color: Colors.textSecondary, textAlign: 'center' as const, paddingHorizontal: 20 },
+  retryBtn: {
+    marginTop: 12, paddingHorizontal: 22, paddingVertical: 10, borderRadius: 12,
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 3,
+  },
+  retryBtnText: { fontSize: 14, fontWeight: '800' as const, color: Colors.white, letterSpacing: -0.2 },
   emptyText: {
     fontSize: 13, color: Colors.textSecondary, textAlign: 'center' as const,
     fontStyle: 'italic' as const, paddingVertical: 20,

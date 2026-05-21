@@ -324,8 +324,10 @@ export default function ProfileScreen() {
             })}
           </View>
 
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} testID="logout-btn">
-            <LogOut size={18} color={Colors.physicalActivity} />
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} testID="logout-btn" activeOpacity={0.85}>
+            <View style={styles.logoutIconWrap}>
+              <LogOut size={18} color={Colors.white} />
+            </View>
             <Text style={styles.logoutBtnText}>{t('profile.logout')}</Text>
           </TouchableOpacity>
 
@@ -730,10 +732,18 @@ const styles = StyleSheet.create({
   // Bottom buttons
   logoutBtn: {
     flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'center' as const,
-    backgroundColor: Colors.physicalActivityLight, borderRadius: 16, padding: 16,
-    marginTop: 18, gap: 8, borderWidth: 1, borderColor: Colors.physicalActivity + '30',
+    backgroundColor: Colors.primary, borderRadius: 16, padding: 14,
+    marginTop: 18, gap: 10,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28, shadowRadius: 14, elevation: 4,
   },
-  logoutBtnText: { fontSize: 15, fontWeight: '700' as const, color: Colors.physicalActivity },
+  logoutIconWrap: {
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 2, borderColor: Colors.white,
+    alignItems: 'center' as const, justifyContent: 'center' as const,
+  },
+  logoutBtnText: { fontSize: 15, fontWeight: '800' as const, color: Colors.white, letterSpacing: -0.2 },
   resetBtn: {
     flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'center' as const,
     paddingVertical: 12, marginTop: 6, gap: 6,
