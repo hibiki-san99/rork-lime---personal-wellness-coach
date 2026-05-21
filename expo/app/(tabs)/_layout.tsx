@@ -13,10 +13,9 @@ import {
 import { Tabs, useRouter } from 'expo-router';
 import {
   Home, Trophy, Lightbulb, User, Plus,
-  Camera, BookOpen, Dumbbell, Moon, X,
+  Camera, BookOpen, Dumbbell, Moon,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/colors';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -153,7 +152,7 @@ export default function TabLayout() {
         </TouchableOpacity>
       </View>
 
-      {/* Shortcut Sheet */}
+      {/* Shortcut Pop-up */}
       <Modal
         visible={open}
         transparent
@@ -162,46 +161,35 @@ export default function TabLayout() {
       >
         <Animated.View style={[styles.backdrop, { opacity: fade }]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={handleToggle} />
-          <SafeAreaView edges={['bottom']} style={styles.sheetContainer} pointerEvents="box-none">
-            <Animated.View
-              style={[
-                styles.sheet,
-                {
-                  opacity: fade,
-                  transform: [
-                    { scale: scale.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) },
-                    { translateY: scale.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) },
-                  ],
-                },
-              ]}
-            >
-              <View style={styles.sheetHeader}>
-                <Text style={styles.sheetTitle}>{t('dashboard.quickActions')}</Text>
-                <TouchableOpacity onPress={handleToggle} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                  <X size={20} color={Colors.textSecondary} />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.shortcutGrid}>
-                {shortcuts.map(s => {
-                  const Icon = s.icon;
-                  return (
-                    <TouchableOpacity
-                      key={s.id}
-                      style={styles.shortcutItem}
-                      activeOpacity={0.7}
-                      onPress={() => handleSelect(s.route)}
-                      testID={`shortcut-${s.id}`}
-                    >
-                      <View style={[styles.shortcutIcon, { backgroundColor: s.color }]}>
-                        <Icon size={26} color={Colors.white} strokeWidth={2.2} />
-                      </View>
-                      <Text style={styles.shortcutLabel}>{s.label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </Animated.View>
-          </SafeAreaView>
+          <View style={styles.shortcutStack} pointerEvents="box-none">
+            {shortcuts.map((s, i) => {
+              const Icon = s.icon;
+              const offset = (shortcuts.length - i) * 14;
+              return (
+                <Animated.View
+                  key={s.id}
+                  style={{
+                    opacity: fade,
+                    transform: [
+                      { translateY: scale.interpolate({ inputRange: [0, 1], outputRange: [offset, 0] }) },
+                    ],
+                  }}
+                >
+                  <TouchableOpacity
+                    style={styles.pill}
+                    activeOpacity={0.85}
+                    onPress={() => handleSelect(s.route)}
+                    testID={`shortcut-${s.id}`}
+                  >
+                    <Text style={styles.pillLabel}>{s.label}</Text>
+                    <View style={[styles.pillIcon, { backgroundColor: s.color }]}>
+                      <Icon size={20} color={Colors.white} strokeWidth={2.4} />
+                    </View>
+                  </TouchableOpacity>
+                </Animated.View>
+              );
+            })}
+          </View>
         </Animated.View>
       </Modal>
     </View>
@@ -237,67 +225,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(15,23,42,0.5)',
   },
-  sheetContainer: {
+  shortcutStack: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    right: 20,
+    bottom: Platform.OS === 'ios' ? 130 : 116,
+    alignItems: 'flex-end',
+    gap: 12,
   },
-  sheet: {
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.white,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 24,
-    padding: 22,
+    borderRadius: 999,
+    paddingLeft: 18,
+    paddingRight: 6,
+    paddingVertical: 6,
+    gap: 12,
     shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 12 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18,
-    shadowRadius: 22,
-    elevation: 14,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 18,
-  },
-  sheetTitle: {
-    fontSize: 18,
-    fontWeight: '800' as const,
-    color: Colors.text,
-    letterSpacing: -0.3,
-  },
-  shortcutGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 14,
-    justifyContent: 'space-between',
-  },
-  shortcutItem: {
-    width: '47%',
-    backgroundColor: '#F8F9FB',
-    borderRadius: 18,
-    padding: 16,
-    alignItems: 'flex-start',
-    borderWidth: 1,
-    borderColor: '#EEF0F3',
-  },
-  shortcutIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  shortcutLabel: {
-    fontSize: 14,
+  pillLabel: {
+    fontSize: 15,
     fontWeight: '700' as const,
     color: Colors.text,
+    letterSpacing: -0.2,
+  },
+  pillIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
