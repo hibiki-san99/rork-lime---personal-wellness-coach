@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronRight, ChevronLeft, Heart, Check, Mail, Lock, User } from 'lucide-react-native';
+import { ChevronRight, ChevronLeft, Heart, Check, Mail, Lock, User, Leaf } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { TEAM_NAMES } from '@/constants/data';
@@ -430,7 +430,7 @@ export default function OnboardingScreen() {
     <View style={styles.stepContent}>
       <View style={styles.accountHeader}>
         <View style={styles.accountLogoCircle}>
-          <Heart size={28} color="#D84315" fill="#D84315" />
+          <Leaf size={30} color={Colors.white} fill={Colors.white} />
         </View>
         <Text style={styles.stepTitle}>
           {isLoginMode ? t('onboarding.welcomeBack') : t('onboarding.createAccount')}
@@ -736,10 +736,10 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 16 },
   logo: { fontSize: 22, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.5 },
   headerTopRow: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const, marginBottom: 16 },
-  signInLink: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#FBE9E7' },
-  signInLinkText: { fontSize: 13, fontWeight: '700' as const, color: '#D84315' },
+  signInLink: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, backgroundColor: Colors.primaryLight },
+  signInLinkText: { fontSize: 13, fontWeight: '700' as const, color: Colors.primaryDark },
   progressBarBg: { height: 6, backgroundColor: Colors.inputBg, borderRadius: 3, overflow: 'hidden' },
-  progressBarFill: { height: 6, backgroundColor: Colors.socialConnection, borderRadius: 3 },
+  progressBarFill: { height: 6, backgroundColor: Colors.primary, borderRadius: 3 },
   stepIndicator: { fontSize: 13, color: Colors.textSecondary, marginTop: 8 },
   scrollContent: { paddingHorizontal: 24, paddingBottom: 32 },
   stepContent: {},
@@ -748,15 +748,16 @@ const styles = StyleSheet.create({
   inputGroup: { marginBottom: 18 },
   label: { fontSize: 14, fontWeight: '600' as const, color: Colors.text, marginBottom: 8 },
   input: {
-    backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.inputBorder,
-    borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: Colors.text,
+    backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.cardBorder,
+    borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: Colors.text,
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
   },
   segmentRow: { flexDirection: 'row', gap: 10 },
   segment: {
     flex: 1, paddingVertical: 12, borderRadius: 10,
     backgroundColor: Colors.inputBg, alignItems: 'center',
   },
-  segmentActive: { backgroundColor: Colors.socialConnection },
+  segmentActive: { backgroundColor: Colors.primary },
   segmentText: { fontSize: 14, fontWeight: '600' as const, color: Colors.textSecondary },
   segmentTextActive: { color: Colors.white },
   rowInputs: { flexDirection: 'row' },
@@ -765,13 +766,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20,
     backgroundColor: Colors.inputBg, borderWidth: 1, borderColor: Colors.inputBorder,
   },
-  teamChipActive: { backgroundColor: Colors.socialConnection, borderColor: Colors.socialConnection },
+  teamChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   teamChipText: { fontSize: 13, fontWeight: '600' as const, color: Colors.textSecondary },
   teamChipTextActive: { color: Colors.white },
   conditionRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: Colors.card, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 16,
+    backgroundColor: Colors.card, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 16,
     marginBottom: 10, borderWidth: 1, borderColor: Colors.cardBorder,
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
   },
   conditionRowActive: { borderColor: Colors.riskySubstances, backgroundColor: Colors.riskySubstancesLight },
   conditionLabel: { fontSize: 15, color: Colors.text, flex: 1 },
@@ -783,8 +785,9 @@ const styles = StyleSheet.create({
   checkboxActive: { backgroundColor: Colors.riskySubstances, borderColor: Colors.riskySubstances },
   clinicalRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: Colors.card, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14,
+    backgroundColor: Colors.card, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14,
     marginBottom: 10, borderWidth: 1, borderColor: Colors.cardBorder,
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
   },
   clinicalLabel: { flex: 1 },
   unitText: { fontSize: 12, color: Colors.textTertiary, marginTop: 2 },
@@ -819,19 +822,25 @@ const styles = StyleSheet.create({
   backButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 8 },
   backButtonText: { fontSize: 16, color: Colors.text, marginLeft: 4 },
   nextButton: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.socialConnection,
-    paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, gap: 8,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primary,
+    paddingHorizontal: 26, paddingVertical: 14, borderRadius: 100, gap: 8,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3, shadowRadius: 12, elevation: 4,
   },
   nextButtonText: { fontSize: 16, fontWeight: '600' as const, color: Colors.white },
   accountHeader: { alignItems: 'center', marginBottom: 8 },
   accountLogoCircle: {
-    width: 60, height: 60, borderRadius: 20, backgroundColor: '#FBE9E7',
-    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    width: 72, height: 72, borderRadius: 24, backgroundColor: Colors.primary,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.32, shadowRadius: 16, elevation: 6,
   },
   authInputGroup: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.card,
-    borderRadius: 14, borderWidth: 1, borderColor: Colors.cardBorder,
+    borderRadius: 16, borderWidth: 1, borderColor: Colors.cardBorder,
     marginBottom: 14, overflow: 'hidden',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
   },
   authInputIcon: {
     width: 48, alignItems: 'center', justifyContent: 'center',
@@ -841,18 +850,20 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   errorBanner: {
-    backgroundColor: '#FFEBEE', borderRadius: 10, padding: 12, marginBottom: 14,
+    backgroundColor: '#FDECEA', borderRadius: 12, padding: 12, marginBottom: 14,
   },
   errorText: { fontSize: 13, color: Colors.error, textAlign: 'center' },
   accountBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#D84315', paddingVertical: 16, borderRadius: 14,
+    backgroundColor: Colors.primary, paddingVertical: 17, borderRadius: 100,
     gap: 8, marginTop: 8,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3, shadowRadius: 12, elevation: 4,
   },
   accountBtnDisabled: { opacity: 0.6 },
   accountBtnText: { fontSize: 16, fontWeight: '700' as const, color: Colors.white },
   switchAuthMode: { alignItems: 'center', marginTop: 20 },
-  switchAuthText: { fontSize: 14, color: Colors.socialConnection, fontWeight: '600' as const },
+  switchAuthText: { fontSize: 14, color: Colors.primaryDark, fontWeight: '700' as const },
   adminNote: {
     fontSize: 12, color: Colors.textTertiary, textAlign: 'center',
     marginTop: 16, lineHeight: 18,
@@ -861,16 +872,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     backgroundColor: Colors.card,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 2,
     borderColor: Colors.cardBorder,
     gap: 14,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 1,
   },
   activityLevelCardActive: {
-    borderColor: Colors.socialConnection,
-    backgroundColor: Colors.socialConnectionLight,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
   },
   activityLevelEmoji: {
     fontSize: 28,
@@ -885,7 +901,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   activityLevelTitleActive: {
-    color: Colors.socialConnection,
+    color: Colors.primaryDark,
   },
   activityLevelDesc: {
     fontSize: 13,
@@ -893,7 +909,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   activityCheckboxActive: {
-    backgroundColor: Colors.socialConnection,
-    borderColor: Colors.socialConnection,
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
 });

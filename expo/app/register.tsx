@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart, Mail, Lock, User, ArrowRight, ChevronLeft } from 'lucide-react-native';
+import { Leaf, Mail, Lock, User, ArrowRight, ChevronLeft } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import * as SecureStore from 'expo-secure-store';
 import Colors from '@/constants/colors';
@@ -67,7 +67,7 @@ export default function RegisterScreen() {
 
             <View style={styles.logoSection}>
               <View style={styles.logoCircle}>
-                <Heart size={28} color="#D84315" fill="#D84315" />
+                <Leaf size={30} color={Colors.white} fill={Colors.white} />
               </View>
               <Text style={styles.formTitle}>Create Account</Text>
               <Text style={styles.formSubtitle}>Join the Lime wellness programme</Text>
@@ -169,7 +169,7 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAF8F5' },
+  container: { flex: 1, backgroundColor: Colors.background },
   safe: { flex: 1 },
   scroll: { flexGrow: 1, padding: 28, paddingTop: 8 },
   backBtn: {
@@ -179,8 +179,10 @@ const styles = StyleSheet.create({
   backText: { fontSize: 15, color: Colors.text, fontWeight: '500' as const },
   logoSection: { alignItems: 'center', marginBottom: 32 },
   logoCircle: {
-    width: 60, height: 60, borderRadius: 20, backgroundColor: '#FBE9E7',
-    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    width: 72, height: 72, borderRadius: 24, backgroundColor: Colors.primary,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.32, shadowRadius: 16, elevation: 6,
   },
   formTitle: {
     fontSize: 24, fontWeight: '800' as const, color: Colors.text,
@@ -189,8 +191,10 @@ const styles = StyleSheet.create({
   formSubtitle: { fontSize: 14, color: Colors.textSecondary, marginTop: 4 },
   inputGroup: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.card,
-    borderRadius: 14, borderWidth: 1, borderColor: Colors.cardBorder,
+    borderRadius: 16, borderWidth: 1, borderColor: Colors.cardBorder,
     marginBottom: 14, overflow: 'hidden',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
   },
   inputIcon: {
     width: 48, alignItems: 'center', justifyContent: 'center',
@@ -200,13 +204,15 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   errorBanner: {
-    backgroundColor: '#FFEBEE', borderRadius: 10, padding: 12, marginBottom: 14,
+    backgroundColor: '#FDECEA', borderRadius: 12, padding: 12, marginBottom: 14,
   },
   errorText: { fontSize: 13, color: Colors.error, textAlign: 'center' },
   registerBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#D84315', paddingVertical: 16, borderRadius: 14,
+    backgroundColor: Colors.primary, paddingVertical: 17, borderRadius: 100,
     gap: 8, marginTop: 8,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3, shadowRadius: 12, elevation: 4,
   },
   registerBtnDisabled: { opacity: 0.6 },
   registerBtnText: { fontSize: 16, fontWeight: '700' as const, color: Colors.white },
