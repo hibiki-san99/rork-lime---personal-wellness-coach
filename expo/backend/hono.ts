@@ -3,7 +3,18 @@ import { cors } from "hono/cors";
 import { getSupabase, directRestInsert } from "./supabase";
 
 const app = new Hono();
-app.use("*", cors());
+app.use(
+  "*",
+  cors({
+    origin: (origin) => origin ?? "*",
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposeHeaders: ["Content-Length"],
+    maxAge: 86400,
+    credentials: true,
+  }),
+);
+app.options("*", (c) => c.body(null, 204));
 
 interface DbUser {
   id: string;
