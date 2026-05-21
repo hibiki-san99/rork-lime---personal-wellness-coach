@@ -102,11 +102,11 @@ export default function JournalLoggerScreen() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn} testID="journal-close">
-            <X size={22} color={Colors.white} />
+            <X size={22} color={Colors.text} />
           </TouchableOpacity>
           <Text style={styles.title}>{t('journal.dailyJournal')}</Text>
           <TouchableOpacity onPress={saveJournal} style={styles.saveBtn} testID="journal-save">
-            <Check size={18} color={Colors.stressManagement} />
+            <Check size={18} color={Colors.white} />
             <Text style={styles.saveBtnText}>{t('common.save')}</Text>
           </TouchableOpacity>
         </View>
@@ -154,7 +154,7 @@ export default function JournalLoggerScreen() {
               value={entry}
               onChangeText={setEntry}
               placeholder={t('journal.beginWriting')}
-              placeholderTextColor="rgba(255,255,255,0.35)"
+              placeholderTextColor={Colors.textTertiary}
               multiline
               textAlignVertical="top"
               testID="journal-input"
@@ -171,7 +171,7 @@ export default function JournalLoggerScreen() {
                   style={styles.historyToggle}
                   onPress={() => { setShowHistory(!showHistory); void Haptics.selectionAsync(); }}
                 >
-                  <Clock size={14} color={'#CE93D8'} />
+                  <Clock size={14} color={Colors.stressManagement} />
                   <Text style={styles.historyToggleText}>
                     {showHistory ? t('journal.hidePast') : t('journal.showPast')} ({journalLogs.length})
                   </Text>
@@ -211,86 +211,99 @@ export default function JournalLoggerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#2D1B4E' },
+  container: { flex: 1, backgroundColor: Colors.background },
   safe: { flex: 1 },
   flex: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20,
-    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
+    paddingVertical: 12,
   },
-  closeBtn: { padding: 4 },
-  title: { flex: 1, fontSize: 18, fontWeight: '700' as const, color: Colors.white, textAlign: 'center' },
+  closeBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
+  },
+  title: { flex: 1, fontSize: 18, fontWeight: '800' as const, color: Colors.text, textAlign: 'center', letterSpacing: -0.3 },
   saveBtn: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, gap: 4,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primary,
+    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, gap: 4,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 3,
   },
-  saveBtnText: { fontSize: 14, fontWeight: '600' as const, color: Colors.stressManagement },
+  saveBtnText: { fontSize: 14, fontWeight: '700' as const, color: Colors.white, letterSpacing: -0.2 },
   scroll: { padding: 20, paddingBottom: 60 },
-  moodBlock: { marginBottom: 24 },
+  moodBlock: { marginBottom: 22 },
   moodQuestion: {
-    fontSize: 16, fontWeight: '600' as const, color: Colors.white,
+    fontSize: 16, fontWeight: '700' as const, color: Colors.text,
     marginBottom: 14, letterSpacing: -0.2,
   },
-  moodRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 6 },
+  moodRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   moodChip: {
-    flex: 1, backgroundColor: 'rgba(255,255,255,0.06)',
-    paddingVertical: 12, paddingHorizontal: 4, borderRadius: 14,
-    alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)',
+    flex: 1, backgroundColor: Colors.white,
+    paddingVertical: 12, paddingHorizontal: 4, borderRadius: 16,
+    alignItems: 'center', borderWidth: 1.5, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
   },
   moodChipSelected: {
-    backgroundColor: 'rgba(206,147,216,0.22)',
-    borderColor: '#CE93D8',
+    backgroundColor: Colors.stressManagementLight,
+    borderColor: Colors.stressManagement,
+    shadowColor: Colors.stressManagement, shadowOpacity: 0.2, shadowRadius: 10,
   },
   moodEmoji: { fontSize: 26, marginBottom: 4 },
-  moodLabel: { fontSize: 10, color: 'rgba(255,255,255,0.55)', fontWeight: '500' as const, textAlign: 'center' },
-  moodLabelSelected: { color: '#CE93D8', fontWeight: '700' as const },
+  moodLabel: { fontSize: 10, color: Colors.textTertiary, fontWeight: '600' as const, textAlign: 'center' },
+  moodLabelSelected: { color: Colors.stressManagement, fontWeight: '700' as const },
   themeCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, alignSelf: 'flex-start',
-    marginBottom: 16,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: Colors.white,
+    paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, alignSelf: 'flex-start',
+    marginBottom: 14, borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
   },
   themeIconWrap: {
-    width: 32, height: 32, borderRadius: 8, backgroundColor: 'rgba(126,87,194,0.3)',
+    width: 32, height: 32, borderRadius: 10, backgroundColor: Colors.stressManagement,
     alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: Colors.white,
+    shadowColor: Colors.stressManagement, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 6, elevation: 2,
   },
-  themeLabel: { fontSize: 14, fontWeight: '600' as const, color: '#D1C4E9' },
+  themeLabel: { fontSize: 13, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.1 },
   prompt: {
-    fontSize: 20, fontWeight: '600' as const, color: Colors.white, lineHeight: 28,
-    marginBottom: 10, letterSpacing: -0.3,
+    fontSize: 22, fontWeight: '800' as const, color: Colors.text, lineHeight: 30,
+    marginBottom: 8, letterSpacing: -0.4,
   },
   optionalLabel: {
-    fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 10,
+    fontSize: 12, color: Colors.textTertiary, marginBottom: 10,
     fontStyle: 'italic' as const,
   },
   textArea: {
-    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 16, padding: 18,
-    fontSize: 16, color: Colors.white, minHeight: 160, lineHeight: 24,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: Colors.white, borderRadius: 18, padding: 18,
+    fontSize: 16, color: Colors.text, minHeight: 160, lineHeight: 24,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
   footer: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginTop: 12, paddingHorizontal: 4,
   },
-  charCount: { fontSize: 13, color: 'rgba(255,255,255,0.4)' },
-  pointsHint: { fontSize: 14, fontWeight: '600' as const, color: '#CE93D8' },
+  charCount: { fontSize: 13, color: Colors.textTertiary },
+  pointsHint: { fontSize: 14, fontWeight: '700' as const, color: Colors.stressManagement },
   historyToggle: {
     flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'center' as const,
-    gap: 6, marginTop: 24, paddingVertical: 10,
-    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)',
+    gap: 6, marginTop: 24, paddingVertical: 12,
   },
-  historyToggleText: { fontSize: 13, fontWeight: '600' as const, color: '#CE93D8' },
+  historyToggleText: { fontSize: 13, fontWeight: '700' as const, color: Colors.stressManagement },
   historyList: { marginTop: 8, gap: 10 },
   historyCard: {
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: Colors.white, borderRadius: 16, padding: 14,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
   historyCardHeader: {
     flexDirection: 'row' as const, justifyContent: 'space-between' as const,
     alignItems: 'center' as const, marginBottom: 6,
   },
   historyLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  historyMood: { fontSize: 18 },
-  historyDate: { fontSize: 12, fontWeight: '600' as const, color: 'rgba(255,255,255,0.7)' },
-  historyPoints: { fontSize: 11, fontWeight: '700' as const, color: '#CE93D8' },
-  historyEntry: { fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 18 },
+  historyMood: { fontSize: 20 },
+  historyDate: { fontSize: 12, fontWeight: '700' as const, color: Colors.text },
+  historyPoints: { fontSize: 11, fontWeight: '800' as const, color: Colors.stressManagement },
+  historyEntry: { fontSize: 13, color: Colors.textSecondary, lineHeight: 18 },
 });

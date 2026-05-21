@@ -72,18 +72,20 @@ export default function SleepLoggerScreen() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-            <X size={22} color={Colors.white} />
+            <X size={22} color={Colors.text} />
           </TouchableOpacity>
           <Text style={styles.title}>{t('sleep.logSleep')}</Text>
           <TouchableOpacity onPress={save} style={styles.saveBtn}>
-            <Check size={18} color={Colors.sleep} />
+            <Check size={18} color={Colors.white} />
             <Text style={styles.saveBtnText}>{t('common.save')}</Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.moonWrap}>
-            <Moon size={48} color="#6B88B0" />
+            <View style={styles.moonTile}>
+              <Moon size={40} color={Colors.white} fill={Colors.white} />
+            </View>
           </View>
 
           <View style={styles.timeRow}>
@@ -94,7 +96,7 @@ export default function SleepLoggerScreen() {
                 value={bedtime}
                 onChangeText={setBedtime}
                 placeholder="22:30"
-                placeholderTextColor="rgba(255,255,255,0.3)"
+                placeholderTextColor={Colors.textTertiary}
                 testID="bedtime-input"
               />
               <Text style={styles.timeHint}>HH:MM</Text>
@@ -109,7 +111,7 @@ export default function SleepLoggerScreen() {
                 value={wakeTime}
                 onChangeText={setWakeTime}
                 placeholder="06:30"
-                placeholderTextColor="rgba(255,255,255,0.3)"
+                placeholderTextColor={Colors.textTertiary}
                 testID="waketime-input"
               />
               <Text style={styles.timeHint}>HH:MM</Text>
@@ -155,7 +157,7 @@ export default function SleepLoggerScreen() {
                   </Text>
                   {selected && (
                     <View style={styles.feelingCheck}>
-                      <Check size={14} color="#0D1B2A" />
+                      <Check size={14} color={Colors.white} />
                     </View>
                   )}
                 </TouchableOpacity>
@@ -179,67 +181,84 @@ export default function SleepLoggerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B2A' },
+  container: { flex: 1, backgroundColor: Colors.background },
   safe: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20,
-    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)',
+    paddingVertical: 12,
   },
-  closeBtn: { padding: 4 },
-  title: { flex: 1, fontSize: 18, fontWeight: '700' as const, color: Colors.white, textAlign: 'center' },
+  closeBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
+  },
+  title: { flex: 1, fontSize: 18, fontWeight: '800' as const, color: Colors.text, textAlign: 'center', letterSpacing: -0.3 },
   saveBtn: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, gap: 4,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primary,
+    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, gap: 4,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 3,
   },
-  saveBtnText: { fontSize: 14, fontWeight: '600' as const, color: Colors.sleep },
+  saveBtnText: { fontSize: 14, fontWeight: '700' as const, color: Colors.white, letterSpacing: -0.2 },
   scroll: { padding: 20, paddingBottom: 40 },
-  moonWrap: { alignItems: 'center', marginVertical: 20 },
-  timeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
+  moonWrap: { alignItems: 'center', marginTop: 8, marginBottom: 24 },
+  moonTile: {
+    width: 72, height: 72, borderRadius: 22, backgroundColor: Colors.sleep,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 3, borderColor: Colors.white,
+    shadowColor: Colors.sleep, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 14, elevation: 4,
+  },
+  timeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   timeCard: {
-    flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: 18,
-    alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    flex: 1, backgroundColor: Colors.white, borderRadius: 18, padding: 16,
+    alignItems: 'center', borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
-  timeLabel: { fontSize: 13, color: '#6B88B0', fontWeight: '600' as const, marginBottom: 8 },
+  timeLabel: { fontSize: 12, color: Colors.sleep, fontWeight: '700' as const, marginBottom: 6, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   timeInput: {
-    fontSize: 32, fontWeight: '700' as const, color: Colors.white, textAlign: 'center',
-    paddingVertical: 4, minWidth: 100,
+    fontSize: 30, fontWeight: '800' as const, color: Colors.text, textAlign: 'center',
+    paddingVertical: 4, minWidth: 100, letterSpacing: -0.5,
   },
-  timeHint: { fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 4 },
-  timeDivider: { paddingHorizontal: 12 },
-  timeDividerText: { fontSize: 14, color: '#6B88B0' },
+  timeHint: { fontSize: 11, color: Colors.textTertiary, marginTop: 2 },
+  timeDivider: { paddingHorizontal: 10 },
+  timeDividerText: { fontSize: 13, color: Colors.textTertiary, fontWeight: '600' as const },
   durationBadge: {
-    alignSelf: 'center', backgroundColor: 'rgba(107,136,176,0.15)',
-    paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, marginBottom: 28,
+    alignSelf: 'center', backgroundColor: Colors.sleepLight,
+    paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, marginBottom: 24,
   },
-  durationText: { fontSize: 14, color: '#81B4FF', fontWeight: '600' as const },
+  durationText: { fontSize: 13, color: Colors.sleep, fontWeight: '700' as const },
   feelingTitle: {
-    fontSize: 17, fontWeight: '700' as const, color: Colors.white, textAlign: 'center', marginBottom: 16,
+    fontSize: 16, fontWeight: '700' as const, color: Colors.text, marginBottom: 14, letterSpacing: -0.2,
   },
-  feelingsRow: { gap: 10, marginBottom: 28 },
+  feelingsRow: { gap: 10, marginBottom: 22 },
   feelingCard: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16,
-    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: Colors.white, borderRadius: 16, padding: 14,
+    borderWidth: 1.5, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
   },
   feelingCardSelected: {
-    backgroundColor: 'rgba(129,180,255,0.12)',
-    borderColor: '#81B4FF',
+    backgroundColor: Colors.sleepLight,
+    borderColor: Colors.sleep,
+    shadowColor: Colors.sleep, shadowOpacity: 0.2, shadowRadius: 10,
   },
   feelingEmoji: { fontSize: 28, marginRight: 14 },
-  feelingLabel: { fontSize: 15, fontWeight: '700' as const, color: 'rgba(255,255,255,0.6)', flex: 1 },
-  feelingLabelSelected: { color: Colors.white },
-  feelingSublabel: { fontSize: 12, color: 'rgba(255,255,255,0.3)', position: 'absolute', right: 16, bottom: 8 },
-  feelingSublabelSelected: { color: 'rgba(129,180,255,0.7)' },
+  feelingLabel: { fontSize: 15, fontWeight: '700' as const, color: Colors.text, flex: 1, letterSpacing: -0.2 },
+  feelingLabelSelected: { color: Colors.sleep },
+  feelingSublabel: { fontSize: 12, color: Colors.textTertiary, position: 'absolute', right: 14, bottom: 8 },
+  feelingSublabelSelected: { color: Colors.sleep, opacity: 0.7 },
   feelingCheck: {
-    width: 22, height: 22, borderRadius: 11, backgroundColor: '#81B4FF',
+    width: 24, height: 24, borderRadius: 12, backgroundColor: Colors.sleep,
     alignItems: 'center', justifyContent: 'center', marginLeft: 8,
+    borderWidth: 2, borderColor: Colors.white,
   },
   pointsCard: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: 'rgba(27,59,92,0.4)', borderRadius: 14, padding: 18,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: Colors.white, borderRadius: 18, padding: 16,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
-  pointsLabel: { fontSize: 15, fontWeight: '600' as const, color: '#6B88B0' },
-  pointsBreakdown: { fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 3 },
-  pointsValue: { fontSize: 22, fontWeight: '800' as const, color: '#81B4FF' },
+  pointsLabel: { fontSize: 14, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.2 },
+  pointsBreakdown: { fontSize: 12, color: Colors.textSecondary, marginTop: 3 },
+  pointsValue: { fontSize: 24, fontWeight: '800' as const, color: Colors.sleep, letterSpacing: -0.5 },
 });

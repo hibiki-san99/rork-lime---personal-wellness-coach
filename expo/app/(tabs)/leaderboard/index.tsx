@@ -49,7 +49,6 @@ export default function LeaderboardScreen() {
       let res = await resilientFetch(`${baseUrl}/api/leaderboard`, {
         headers: { 'Authorization': `Bearer ${activeToken}` },
         maxRetries: 2,
-        skipWake: true,
       });
       if (res.status === 401) {
         const fresh = await refreshToken();
@@ -57,7 +56,6 @@ export default function LeaderboardScreen() {
           res = await resilientFetch(`${baseUrl}/api/leaderboard`, {
             headers: { 'Authorization': `Bearer ${fresh}` },
             maxRetries: 2,
-            skipWake: true,
           });
         }
       }

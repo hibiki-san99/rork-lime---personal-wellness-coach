@@ -652,38 +652,42 @@ export default function MealLoggerScreen() {
 
                   <View style={styles.modeCards}>
                     <TouchableOpacity
-                      style={[styles.modeCard, styles.modeCardPhoto]}
+                      style={styles.modeCard}
                       onPress={() => { setEntryMode('photo'); setStep('photo'); void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                      activeOpacity={0.7}
+                      activeOpacity={0.85}
                       testID="mode-photo"
                     >
-                      <View style={[styles.modeIconCircle, { backgroundColor: '#E8F5E9' }]}>
-                        <Camera size={28} color={Colors.nutrition} />
+                      <View style={[styles.modeIconTile, { backgroundColor: Colors.primary, shadowColor: Colors.primary }]}>
+                        <Camera size={24} color={Colors.white} />
                       </View>
-                      <Text style={styles.modeCardTitle}>{t('meal.takePhoto')}</Text>
-                      <Text style={styles.modeCardDesc}>
-                        {t('meal.takePhotoDesc')}
-                      </Text>
-                      <View style={[styles.modeCardArrow, { backgroundColor: Colors.nutrition }]}>
-                        <ChevronRight size={16} color={Colors.white} />
+                      <View style={styles.modeCardBody}>
+                        <Text style={styles.modeCardTitle}>{t('meal.takePhoto')}</Text>
+                        <Text style={styles.modeCardDesc} numberOfLines={2}>
+                          {t('meal.takePhotoDesc')}
+                        </Text>
+                      </View>
+                      <View style={styles.modeCardChevron}>
+                        <ChevronRight size={20} color={Colors.textTertiary} />
                       </View>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.modeCard, styles.modeCardManual]}
+                      style={styles.modeCard}
                       onPress={() => { setEntryMode('manual'); setStep('manual_search'); void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                      activeOpacity={0.7}
+                      activeOpacity={0.85}
                       testID="mode-manual"
                     >
-                      <View style={[styles.modeIconCircle, { backgroundColor: '#FFF3E0' }]}>
-                        <UtensilsCrossed size={28} color={Colors.physicalActivity} />
+                      <View style={[styles.modeIconTile, { backgroundColor: Colors.mood, shadowColor: Colors.mood }]}>
+                        <UtensilsCrossed size={24} color={Colors.white} />
                       </View>
-                      <Text style={styles.modeCardTitle}>{t('meal.enterManually')}</Text>
-                      <Text style={styles.modeCardDesc}>
-                        {t('meal.enterManuallyDesc')}
-                      </Text>
-                      <View style={[styles.modeCardArrow, { backgroundColor: Colors.physicalActivity }]}>
-                        <ChevronRight size={16} color={Colors.white} />
+                      <View style={styles.modeCardBody}>
+                        <Text style={styles.modeCardTitle}>{t('meal.enterManually')}</Text>
+                        <Text style={styles.modeCardDesc} numberOfLines={2}>
+                          {t('meal.enterManuallyDesc')}
+                        </Text>
+                      </View>
+                      <View style={styles.modeCardChevron}>
+                        <ChevronRight size={20} color={Colors.textTertiary} />
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -1282,30 +1286,25 @@ const styles = StyleSheet.create({
   saveBtnText: { fontSize: 14, fontWeight: '600' as const, color: Colors.white },
   scroll: { padding: 20, paddingBottom: 50 },
 
-  modeTitle: { fontSize: 22, fontWeight: '800' as const, color: Colors.text, marginBottom: 4 },
-  modeSub: { fontSize: 14, color: Colors.textSecondary, marginBottom: 24 },
-  modeCards: { gap: 14, marginBottom: 24 },
+  modeTitle: { fontSize: 28, fontWeight: '800' as const, color: Colors.text, marginBottom: 4, letterSpacing: -0.6 },
+  modeSub: { fontSize: 14, color: Colors.textSecondary, marginBottom: 22 },
+  modeCards: { gap: 12, marginBottom: 24 },
   modeCard: {
-    borderRadius: 16, padding: 22, borderWidth: 1,
-    position: 'relative' as const, overflow: 'hidden' as const,
+    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 14,
+    backgroundColor: Colors.white, borderRadius: 18, padding: 16,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
-  modeCardPhoto: {
-    backgroundColor: '#FAFFF9', borderColor: '#C8E6C9',
-  },
-  modeCardManual: {
-    backgroundColor: '#FFFBF5', borderColor: '#FFE0B2',
-  },
-  modeIconCircle: {
-    width: 52, height: 52, borderRadius: 26,
-    alignItems: 'center' as const, justifyContent: 'center' as const, marginBottom: 14,
-  },
-  modeCardTitle: { fontSize: 17, fontWeight: '700' as const, color: Colors.text, marginBottom: 6 },
-  modeCardDesc: { fontSize: 13, color: Colors.textSecondary, lineHeight: 19, paddingRight: 40 },
-  modeCardArrow: {
-    position: 'absolute' as const, right: 18, top: 22,
-    width: 32, height: 32, borderRadius: 16,
+  modeIconTile: {
+    width: 48, height: 48, borderRadius: 14,
     alignItems: 'center' as const, justifyContent: 'center' as const,
+    borderWidth: 2, borderColor: Colors.white,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.22, shadowRadius: 8, elevation: 3,
   },
+  modeCardBody: { flex: 1 },
+  modeCardTitle: { fontSize: 16, fontWeight: '700' as const, color: Colors.text, marginBottom: 3, letterSpacing: -0.2 },
+  modeCardDesc: { fontSize: 12.5, color: Colors.textSecondary, lineHeight: 17 },
+  modeCardChevron: { paddingLeft: 4 },
 
   photoSection: { marginBottom: 24 },
   photoPreview: { borderRadius: 16, overflow: 'hidden', height: 220 },
@@ -1614,20 +1613,25 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline' as const,
   },
   historyToggle: {
-    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8,
+    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 10,
     paddingVertical: 14, paddingHorizontal: 16,
-    backgroundColor: Colors.card, borderRadius: 14, marginBottom: 4,
-    borderWidth: 1, borderColor: Colors.cardBorder,
+    backgroundColor: Colors.white, borderRadius: 16, marginBottom: 4,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
-  historyToggleText: { flex: 1, fontSize: 15, fontWeight: '600' as const, color: Colors.nutrition },
-  historySection: { marginTop: 8, marginBottom: 16 },
-  historyFilterRow: { flexDirection: 'row' as const, gap: 8, marginBottom: 14 },
+  historyToggleText: { flex: 1, fontSize: 15, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.2 },
+  historySection: { marginTop: 12, marginBottom: 16 },
+  historyFilterRow: {
+    flexDirection: 'row' as const, gap: 4, marginBottom: 14,
+    backgroundColor: Colors.white, borderRadius: 14, padding: 4,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
+  },
   historyFilterBtn: {
     flex: 1, alignItems: 'center' as const, paddingVertical: 10, borderRadius: 10,
-    backgroundColor: Colors.inputBg, borderWidth: 1, borderColor: Colors.inputBorder,
   },
   historyFilterBtnActive: {
-    backgroundColor: Colors.nutrition, borderColor: Colors.nutrition,
+    backgroundColor: Colors.primary,
   },
   historyFilterText: { fontSize: 13, fontWeight: '600' as const, color: Colors.textSecondary },
   historyFilterTextActive: { color: Colors.white },
@@ -1637,8 +1641,9 @@ const styles = StyleSheet.create({
   historyEmptyText: { fontSize: 14, color: Colors.textTertiary },
   historyCardWrap: { marginBottom: 10 },
   historyCard: {
-    backgroundColor: Colors.card, borderRadius: 14, padding: 14,
-    borderWidth: 1, borderColor: Colors.cardBorder,
+    backgroundColor: Colors.white, borderRadius: 18, padding: 14,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
   historyCardRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12 },
   historyThumb: { width: 52, height: 52, borderRadius: 10 },
