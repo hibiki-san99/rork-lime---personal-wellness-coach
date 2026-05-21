@@ -77,7 +77,7 @@ const en = {
     weeklyReport: 'Weekly Report',
     healthMarkers: 'Health Markers',
     badgesEarned: 'Badges Earned',
-    stepsCount: 'steps',
+    stepsCount: 'Steps',
     startWalking: 'Start walking!',
     beatYesterday: '🎉 Beat yesterday!',
     keepGoing: '{{steps}} yday — keep going!',
@@ -86,7 +86,7 @@ const en = {
     stepsBreakdown: 'Steps',
     activityBreakdown: 'Activity',
     stepsPlusActivity: 'Steps + Activity',
-    caloriesBurnt2: 'calories burnt',
+    caloriesBurnt2: 'Calories Burnt',
     pointsEarnedToday: 'Points earned today',
     keepItUp: 'Keep it up!',
     pillars: {

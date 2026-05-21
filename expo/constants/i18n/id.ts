@@ -79,7 +79,7 @@ const id: TranslationKeys = {
     weeklyReport: 'Laporan Mingguan',
     healthMarkers: 'Penanda Kesehatan',
     badgesEarned: 'Lencana Diperoleh',
-    stepsCount: 'langkah',
+    stepsCount: 'Langkah',
     startWalking: 'Mulai berjalan!',
     beatYesterday: '🎉 Kalahkan kemarin!',
     keepGoing: '{{steps}} kmrn — terus semangat!',
@@ -88,7 +88,7 @@ const id: TranslationKeys = {
     stepsBreakdown: 'Langkah',
     activityBreakdown: 'Aktivitas',
     stepsPlusActivity: 'Langkah + Aktivitas',
-    caloriesBurnt2: 'kalori terbakar',
+    caloriesBurnt2: 'Kalori Terbakar',
     pointsEarnedToday: 'Poin diperoleh hari ini',
     keepItUp: 'Terus semangat!',
     pillars: {
