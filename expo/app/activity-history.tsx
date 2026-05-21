@@ -93,6 +93,40 @@ export default function ActivityHistoryScreen() {
     return 'Daily burn smashed. Strong work 🏆';
   }, [todayTotal]);
 
+  const last7Days = useMemo(() => {
+    const arr: string[] = [];
+    const today = new Date(todayString + 'T12:00:00');
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      arr.push(d.toISOString().split('T')[0] ?? '');
+    }
+    return arr.filter(Boolean);
+  }, [todayString]);
+
+  const chartData = useMemo(() => {
+    const activitiesByDate: Record<string, number> = {};
+    for (const log of activityLogs) {
+      activitiesByDate[log.date] = (activitiesByDate[log.date] ?? 0) + log.caloriesBurned;
+    }
+    const rows = last7Days.map(date => {
+      const isToday = date === todayString;
+      const steps = isToday ? dailySteps : (pastStepsMap[date] ?? 0);
+      const stepsCal = calculateStepCalories(steps, weight);
+      const actCal = activitiesByDate[date] ?? 0;
+      return {
+        date,
+        shortLabel: shortDayLabel(date, todayString),
+        stepsCal,
+        actCal,
+        total: stepsCal + actCal,
+        isToday,
+      };
+    });
+    const max = Math.max(1, ...rows.map(r => r.total));
+    return { rows, max };
+  }, [last7Days, activityLogs, pastStepsMap, dailySteps, weight, todayString]);
+
   const pastDates = useMemo(() => {
     const set = new Set<string>();
     for (const log of activityLogs) {
@@ -199,6 +233,65 @@ export default function ActivityHistoryScreen() {
               <Text style={styles.bdLabel}>From activity</Text>
               <Text style={styles.bdValue}>{todayActivityCalories}</Text>
               <Text style={styles.bdUnit}>kcal · {todayActivities.length} logged</Text>
+            </View>
+          </View>
+
+          {/* 7-day stacked chart */}
+          <View style={styles.chartCard}>
+            <View style={styles.chartHeaderRow}>
+              <View>
+                <Text style={styles.chartTitle}>Last 7 Days</Text>
+                <Text style={styles.chartSub}>Daily burn breakdown</Text>
+              </View>
+              <View style={styles.legendRow}>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: Colors.physicalActivity }]} />
+                  <Text style={styles.legendText}>Steps</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: Colors.mood }]} />
+                  <Text style={styles.legendText}>Activity</Text>
+                </View>
+              </View>
+            </View>
+            <View style={styles.chartBody}>
+              {chartData.rows.map(row => {
+                const heightPct = (row.total / chartData.max) * 100;
+                const stepsPct = row.total > 0 ? (row.stepsCal / row.total) * 100 : 0;
+                const actPct = row.total > 0 ? (row.actCal / row.total) * 100 : 0;
+                return (
+                  <View key={row.date} style={styles.chartCol}>
+                    <Text style={[styles.chartTotal, row.total === 0 && styles.chartTotalEmpty]}>
+                      {row.total > 0 ? row.total : ''}
+                    </Text>
+                    <View style={styles.chartBarTrack}>
+                      <View style={[styles.chartBarFill, { height: `${heightPct}%` as any }]}>
+                        {row.actCal > 0 && (
+                          <View style={{
+                            height: `${actPct}%` as any,
+                            backgroundColor: Colors.mood,
+                            borderTopLeftRadius: 6,
+                            borderTopRightRadius: 6,
+                          }} />
+                        )}
+                        {row.stepsCal > 0 && (
+                          <View style={{
+                            height: `${stepsPct}%` as any,
+                            backgroundColor: Colors.physicalActivity,
+                            borderBottomLeftRadius: 4,
+                            borderBottomRightRadius: 4,
+                            borderTopLeftRadius: row.actCal > 0 ? 0 : 6,
+                            borderTopRightRadius: row.actCal > 0 ? 0 : 6,
+                          }} />
+                        )}
+                      </View>
+                    </View>
+                    <Text style={[styles.chartDayLabel, row.isToday && styles.chartDayLabelToday]}>
+                      {row.shortLabel}
+                    </Text>
+                  </View>
+                );
+              })}
             </View>
           </View>
 
@@ -328,6 +421,12 @@ export default function ActivityHistoryScreen() {
       </SafeAreaView>
     </View>
   );
+}
+
+function shortDayLabel(dateStr: string, todayStr: string): string {
+  if (dateStr === todayStr) return 'Today';
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3);
 }
 
 function formatDateLabel(dateStr: string): string {
@@ -467,6 +566,32 @@ const styles = StyleSheet.create({
   subTitle: { fontSize: 13, fontWeight: '600' as const, color: Colors.text },
   subMeta: { fontSize: 11, color: Colors.textTertiary, marginTop: 1, fontWeight: '500' as const },
   subCal: { fontSize: 13, fontWeight: '700' as const, color: Colors.text },
+
+  chartCard: {
+    backgroundColor: Colors.card, borderRadius: 18, padding: 16, marginBottom: 22,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
+  },
+  chartHeaderRow: { flexDirection: 'row' as const, alignItems: 'flex-start' as const, justifyContent: 'space-between' as const, marginBottom: 14 },
+  chartTitle: { fontSize: 15, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.2 },
+  chartSub: { fontSize: 11, color: Colors.textTertiary, marginTop: 2, fontWeight: '500' as const },
+  legendRow: { flexDirection: 'row' as const, gap: 10, alignItems: 'center' as const, marginTop: 2 },
+  legendItem: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 5 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendText: { fontSize: 11, color: Colors.textSecondary, fontWeight: '600' as const },
+  chartBody: { flexDirection: 'row' as const, alignItems: 'flex-end' as const, justifyContent: 'space-between' as const, height: 150, gap: 6 },
+  chartCol: { flex: 1, alignItems: 'center' as const, height: '100%' as const, justifyContent: 'flex-end' as const },
+  chartTotal: { fontSize: 10, fontWeight: '700' as const, color: Colors.text, marginBottom: 4, letterSpacing: -0.2 },
+  chartTotalEmpty: { color: 'transparent' },
+  chartBarTrack: {
+    width: '100%' as const, flex: 1,
+    justifyContent: 'flex-end' as const,
+    backgroundColor: '#F4F6F9', borderRadius: 6,
+    overflow: 'hidden' as const,
+  },
+  chartBarFill: { width: '100%' as const, justifyContent: 'flex-end' as const, overflow: 'hidden' as const },
+  chartDayLabel: { fontSize: 11, color: Colors.textTertiary, fontWeight: '600' as const, marginTop: 6 },
+  chartDayLabelToday: { color: Colors.primary, fontWeight: '800' as const },
 
   emptyPast: { alignItems: 'center' as const, paddingVertical: 20 },
   emptyPastText: { fontSize: 13, color: Colors.textTertiary, fontWeight: '500' as const, fontStyle: 'italic' as const },
