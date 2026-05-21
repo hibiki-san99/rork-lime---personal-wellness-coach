@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, Download, Users, Activity, Moon, BookOpen, Footprints, ShieldCheck, ShieldOff, KeyRound, Check, ChevronDown, FileText, FileJson } from 'lucide-react-native';
+import { X, Download, Users, Activity, Moon, BookOpen, Footprints, ShieldCheck, ShieldOff, KeyRound, Check, ChevronDown, FileText, FileJson, Utensils, Heart, Award, Star, ArrowLeft } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { useAuth } from '@/context/AuthContext';
 import { resilientFetch, wakeBackend } from '@/utils/resilientFetch';
@@ -425,131 +425,131 @@ export default function AdminScreen() {
     );
   }
 
+  const totalPoints = useMemo(() =>
+    users.reduce((sum, u) => sum + ((u.syncData as any)?.totalPoints || 0), 0),
+  [users]);
+  const totalBadges = useMemo(() =>
+    users.reduce((sum, u) => {
+      const badges = (u.syncData as any)?.badges as Array<{ earned: boolean }> | undefined;
+      return sum + (badges?.filter(b => b.earned)?.length || 0);
+    }, 0),
+  [users]);
+  const heartAgeCount = useMemo(() =>
+    users.filter(u => (u.syncData as any)?.heartAgeResult).length,
+  [users]);
+  const syncPct = users.length > 0 ? Math.round((syncedCount / users.length) * 100) : 0;
+  const syncMsg = useMemo(() => {
+    if (users.length === 0) return 'Waiting for participants to register';
+    if (syncedCount === 0) return 'No data synced yet — share the app with your cohort';
+    if (syncPct < 25) return 'Early data coming in — keep nudging participants';
+    if (syncPct < 60) return 'Good momentum — over a quarter actively logging';
+    if (syncPct < 90) return 'Strong engagement across the cohort';
+    return 'Excellent — your study is fully engaged';
+  }, [users.length, syncedCount, syncPct]);
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.headerBg}>
-        <SafeAreaView edges={['top']}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-              <X size={22} color={Colors.white} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Research Dashboard</Text>
-            <TouchableOpacity onPress={openExportModal} style={styles.exportBtn} disabled={loading}>
-              <Download size={15} color={Colors.white} />
-              <Text style={styles.exportBtnText}>Export</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.socialConnection} />
-          <Text style={styles.loadingText}>Loading participants...</Text>
-        </View>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <View style={styles.topBar}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.topBarBtn}>
+              <ArrowLeft size={22} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingText}>Loading participants...</Text>
+          </View>
+        </SafeAreaView>
       ) : errorMsg ? (
-        <ScrollView
-          contentContainerStyle={styles.errorContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        >
-          <Text style={styles.errorEmoji}>⚠️</Text>
-          <Text style={styles.errorTitle}>Connection Issue</Text>
-          <Text style={styles.errorDesc}>{errorMsg}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={handleRefresh}>
-            <Text style={styles.retryBtnText}>Retry</Text>
-          </TouchableOpacity>
-        </ScrollView>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <View style={styles.topBar}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.topBarBtn}>
+              <ArrowLeft size={22} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            contentContainerStyle={styles.errorContainer}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          >
+            <Text style={styles.errorEmoji}>⚠️</Text>
+            <Text style={styles.errorTitle}>Connection Issue</Text>
+            <Text style={styles.errorDesc}>{errorMsg}</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={handleRefresh}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </SafeAreaView>
       ) : (
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        >
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Users size={18} color={Colors.socialConnection} />
-              <Text style={styles.statValue}>{users.length}</Text>
-              <Text style={styles.statLabel}>Participants</Text>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          >
+            <View style={styles.topBar}>
+              <TouchableOpacity onPress={() => router.back()} style={styles.topBarBtn}>
+                <ArrowLeft size={22} color={Colors.text} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={openExportModal} style={styles.exportPill} disabled={loading}>
+                <Download size={14} color={Colors.white} />
+                <Text style={styles.exportPillText}>Export</Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.statCard}>
-              <Activity size={18} color={Colors.nutrition} />
-              <Text style={styles.statValue}>{syncedCount}</Text>
-              <Text style={styles.statLabel}>Synced</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statEmoji}>🍽️</Text>
-              <Text style={styles.statValue}>{totalMeals}</Text>
-              <Text style={styles.statLabel}>Meals</Text>
-            </View>
-          </View>
 
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Footprints size={18} color={Colors.physicalActivity} />
-              <Text style={styles.statValue}>{totalActivities}</Text>
-              <Text style={styles.statLabel}>Activities</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Moon size={18} color={Colors.sleep} />
-              <Text style={styles.statValue}>{totalSleep}</Text>
-              <Text style={styles.statLabel}>Sleep Logs</Text>
-            </View>
-            <View style={styles.statCard}>
-              <BookOpen size={18} color={Colors.stressManagement} />
-              <Text style={styles.statValue}>{totalJournals}</Text>
-              <Text style={styles.statLabel}>Journals</Text>
-            </View>
-          </View>
+            <Text style={styles.pageTitle}>Research Dashboard</Text>
+            <Text style={styles.pageSub}>{users.length} participant{users.length === 1 ? '' : 's'} · live cohort overview</Text>
 
-          <View style={styles.statsRow}>
-            <View style={[styles.statCard, { backgroundColor: '#FFF8E1', borderColor: '#FFE082' }]}>
-              <Text style={styles.statEmoji}>⭐</Text>
-              <Text style={styles.statValue}>
-                {users.reduce((sum, u) => sum + ((u.syncData as any)?.totalPoints || 0), 0)}
-              </Text>
-              <Text style={styles.statLabel}>Total Pts</Text>
+            {/* Hero card — green */}
+            <View style={styles.heroCard}>
+              <Text style={styles.heroLabel}>Active participation</Text>
+              <View style={styles.heroRow}>
+                <Text style={styles.heroBig}>{syncedCount}<Text style={styles.heroBigSlash}>/{users.length}</Text></Text>
+                <Text style={styles.heroPct}>{syncPct}%</Text>
+              </View>
+              <View style={styles.heroBarBg}>
+                <View style={[styles.heroBarFill, { width: `${syncPct}%` as any }]} />
+              </View>
+              <Text style={styles.heroMsg}>{syncMsg}</Text>
             </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statEmoji}>❤️</Text>
-              <Text style={styles.statValue}>
-                {users.filter(u => (u.syncData as any)?.heartAgeResult).length}
-              </Text>
-              <Text style={styles.statLabel}>Heart Ages</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statEmoji}>🏅</Text>
-              <Text style={styles.statValue}>
-                {users.reduce((sum, u) => {
-                  const badges = (u.syncData as any)?.badges as Array<{ earned: boolean }> | undefined;
-                  return sum + (badges?.filter(b => b.earned)?.length || 0);
-                }, 0)}
-              </Text>
-              <Text style={styles.statLabel}>Badges</Text>
-            </View>
-          </View>
 
-          <Text style={styles.sectionTitle}>Participants ({users.length})</Text>
+            {/* Stat grid — white 3D cards */}
+            <Text style={styles.sectionTitle}>Cohort Activity</Text>
+            <View style={styles.statGrid}>
+              <StatTile color={Colors.nutrition} icon={<Utensils size={18} color={Colors.white} />} value={totalMeals} label="Meals logged" />
+              <StatTile color={Colors.physicalActivity} icon={<Footprints size={18} color={Colors.white} />} value={totalActivities} label="Activities" />
+              <StatTile color={Colors.sleep} icon={<Moon size={18} color={Colors.white} />} value={totalSleep} label="Sleep logs" />
+              <StatTile color={Colors.stressManagement} icon={<BookOpen size={18} color={Colors.white} />} value={totalJournals} label="Journals" />
+              <StatTile color={Colors.mood} icon={<Star size={18} color={Colors.white} />} value={totalPoints} label="Total points" />
+              <StatTile color={Colors.riskySubstances} icon={<Heart size={18} color={Colors.white} />} value={heartAgeCount} label="Heart ages" />
+              <StatTile color={Colors.socialConnection} icon={<Award size={18} color={Colors.white} />} value={totalBadges} label="Badges earned" />
+              <StatTile color={Colors.primaryDark} icon={<Users size={18} color={Colors.white} />} value={syncedCount} label="Synced users" />
+            </View>
 
-          {users.map(u => {
-            const sd = u.syncData as Record<string, unknown> | null;
-            return (
-              <View key={u.id} style={styles.userCard}>
-                <View style={styles.userCardHeader}>
-                  <View style={styles.userAvatar}>
-                    <Text style={styles.userAvatarText}>
-                      {u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
-                    </Text>
-                  </View>
-                  <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{u.name}</Text>
-                    <Text style={styles.userEmail}>{u.email}</Text>
-                  </View>
-                  {u.isAdmin && (
-                    <View style={styles.adminBadge}>
-                      <Text style={styles.adminBadgeText}>Admin</Text>
+            <Text style={styles.sectionTitle}>Participants</Text>
+
+            {users.map(u => {
+              const sd = u.syncData as Record<string, unknown> | null;
+              return (
+                <View key={u.id} style={styles.userCard}>
+                  <View style={styles.userCardHeader}>
+                    <View style={styles.userAvatar}>
+                      <Text style={styles.userAvatarText}>
+                        {u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
+                      </Text>
                     </View>
-                  )}
-                </View>
+                    <View style={styles.userInfo}>
+                      <Text style={styles.userName}>{u.name}</Text>
+                      <Text style={styles.userEmail}>{u.email}</Text>
+                    </View>
+                    {u.isAdmin && (
+                      <View style={styles.adminBadge}>
+                        <Text style={styles.adminBadgeText}>Admin</Text>
+                      </View>
+                    )}
+                  </View>
                 {u.hasSynced && sd ? (
                   <>
                     <View style={styles.userStats}>
@@ -644,14 +644,15 @@ export default function AdminScreen() {
             );
           })}
 
-          {users.length === 0 && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>📊</Text>
-              <Text style={styles.emptyTitle}>No participants yet</Text>
-              <Text style={styles.emptySub}>Users will appear here after they register and sync data</Text>
-            </View>
-          )}
-        </ScrollView>
+            {users.length === 0 && (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyEmoji}>📊</Text>
+                <Text style={styles.emptyTitle}>No participants yet</Text>
+                <Text style={styles.emptySub}>Users will appear here after they register and sync data</Text>
+              </View>
+            )}
+          </ScrollView>
+        </SafeAreaView>
       )}
       <ExportBuilderModal
         visible={showExportModal}
@@ -717,73 +718,130 @@ export default function AdminScreen() {
   );
 }
 
+interface StatTileProps {
+  color: string;
+  icon: React.ReactNode;
+  value: number;
+  label: string;
+}
+
+function StatTile({ color, icon, value, label }: StatTileProps) {
+  return (
+    <View style={styles.statTileCard}>
+      <View style={[styles.statTileIcon, { backgroundColor: color, shadowColor: color }]}>
+        {icon}
+      </View>
+      <Text style={styles.statTileValue}>{value.toLocaleString()}</Text>
+      <Text style={styles.statTileLabel}>{label}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  headerBg: { backgroundColor: '#1A3B5C' },
-  header: {
-    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20,
-    paddingVertical: 14,
+  topBar: {
+    flexDirection: 'row' as const, alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    paddingHorizontal: 20, paddingVertical: 8,
   },
-  closeBtn: { padding: 4 },
-  headerTitle: {
-    flex: 1, fontSize: 18, fontWeight: '700' as const, color: Colors.white,
-    textAlign: 'center',
+  topBarBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: Colors.card, alignItems: 'center' as const, justifyContent: 'center' as const,
+    borderWidth: 1, borderColor: Colors.cardBorder,
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
   },
-  exportGroup: { flexDirection: 'row', gap: 6 },
-  exportBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10,
-    paddingVertical: 8, borderRadius: 10,
+  exportPill: {
+    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 6,
+    backgroundColor: Colors.primary, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 10, elevation: 3,
   },
-  exportBtnText: { fontSize: 12, fontWeight: '600' as const, color: Colors.white },
+  exportPillText: { fontSize: 13, fontWeight: '700' as const, color: Colors.white, letterSpacing: -0.2 },
+  pageTitle: { fontSize: 32, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.8, paddingHorizontal: 20, marginTop: 4 },
+  pageSub: { fontSize: 14, color: Colors.textSecondary, marginTop: 4, marginBottom: 20, paddingHorizontal: 20 },
+
+  heroCard: {
+    marginHorizontal: 20,
+    borderRadius: 22, padding: 20, marginBottom: 22,
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary, shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
+    overflow: 'hidden' as const,
+  },
+  heroLabel: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, opacity: 0.9 },
+  heroRow: { flexDirection: 'row' as const, alignItems: 'flex-end' as const, justifyContent: 'space-between' as const, marginTop: 4 },
+  heroBig: { color: Colors.white, fontSize: 40, fontWeight: '800' as const, letterSpacing: -1 },
+  heroBigSlash: { fontSize: 22, fontWeight: '700' as const, opacity: 0.7 },
+  heroPct: { color: Colors.white, fontSize: 26, fontWeight: '800' as const, opacity: 0.55, letterSpacing: -0.6 },
+  heroBarBg: {
+    height: 8, backgroundColor: 'rgba(255,255,255,0.28)', borderRadius: 4, overflow: 'hidden' as const,
+    marginTop: 12,
+  },
+  heroBarFill: { height: 8, backgroundColor: Colors.white, borderRadius: 4 },
+  heroMsg: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, marginTop: 12, opacity: 0.95 },
+
+  statGrid: {
+    flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 10,
+    paddingHorizontal: 20, marginBottom: 12,
+  },
+  statTileCard: {
+    width: '47.5%' as const,
+    backgroundColor: Colors.card, borderRadius: 18, padding: 14,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
+  },
+  statTileIcon: {
+    width: 40, height: 40, borderRadius: 12,
+    alignItems: 'center' as const, justifyContent: 'center' as const,
+    borderWidth: 2, borderColor: Colors.white,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 3,
+    marginBottom: 10,
+  },
+  statTileValue: { fontSize: 22, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.5 },
+  statTileLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 2, fontWeight: '600' as const },
+
   loadingContainer: {
     flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12,
   },
   loadingText: { fontSize: 14, color: Colors.textSecondary },
   errorContainer: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40,
+    flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 40,
   },
   errorEmoji: { fontSize: 48, marginBottom: 16 },
   errorTitle: { fontSize: 20, fontWeight: '700' as const, color: Colors.text, marginBottom: 8 },
   errorDesc: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center', lineHeight: 21, marginBottom: 24 },
   retryBtn: {
-    backgroundColor: Colors.socialConnection, paddingHorizontal: 28, paddingVertical: 14,
+    backgroundColor: Colors.primary, paddingHorizontal: 28, paddingVertical: 14,
     borderRadius: 12,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 3,
   },
-  retryBtnText: { fontSize: 15, fontWeight: '600' as const, color: Colors.white },
-  scroll: { padding: 20, paddingBottom: 40 },
-  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  statCard: {
-    flex: 1, backgroundColor: Colors.card, borderRadius: 14, padding: 14,
-    alignItems: 'center', borderWidth: 1, borderColor: Colors.cardBorder,
-  },
-  statEmoji: { fontSize: 18 },
-  statValue: {
-    fontSize: 22, fontWeight: '800' as const, color: Colors.text, marginTop: 4,
-  },
-  statLabel: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
+  retryBtnText: { fontSize: 15, fontWeight: '700' as const, color: Colors.white, letterSpacing: -0.2 },
+  scroll: { paddingBottom: 40 },
   sectionTitle: {
     fontSize: 18, fontWeight: '700' as const, color: Colors.text,
-    marginBottom: 14, marginTop: 12,
+    marginBottom: 14, marginTop: 12, paddingHorizontal: 20, letterSpacing: -0.3,
   },
   userCard: {
-    backgroundColor: Colors.card, borderRadius: 14, padding: 16,
-    marginBottom: 12, borderWidth: 1, borderColor: Colors.cardBorder,
+    marginHorizontal: 20,
+    backgroundColor: Colors.card, borderRadius: 18, padding: 16,
+    marginBottom: 12, borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
   userCardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   userAvatar: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.socialConnection,
+    width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary,
     alignItems: 'center', justifyContent: 'center', marginRight: 12,
+    borderWidth: 2, borderColor: Colors.white,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 3,
   },
   userAvatarText: { fontSize: 16, fontWeight: '700' as const, color: Colors.white },
   userInfo: { flex: 1 },
   userName: { fontSize: 16, fontWeight: '700' as const, color: Colors.text },
   userEmail: { fontSize: 13, color: Colors.textSecondary, marginTop: 1 },
   adminBadge: {
-    backgroundColor: '#E8F5E9', paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: 8,
+    backgroundColor: Colors.primaryDark, paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 999,
   },
-  adminBadgeText: { fontSize: 11, fontWeight: '600' as const, color: Colors.nutrition },
+  adminBadgeText: { fontSize: 11, fontWeight: '700' as const, color: Colors.white, letterSpacing: 0.2 },
   userStats: { flexDirection: 'row', gap: 8 },
   userStatsRow2: { flexDirection: 'row', gap: 8, marginTop: 8 },
   userStatItem: {
@@ -798,11 +856,11 @@ const styles = StyleSheet.create({
   },
   promoteBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, marginTop: 12, paddingVertical: 10, borderRadius: 10,
-    backgroundColor: Colors.socialConnectionLight, borderWidth: 1,
-    borderColor: Colors.socialConnection + '30',
+    gap: 6, marginTop: 12, paddingVertical: 11, borderRadius: 12,
+    backgroundColor: Colors.primaryLight, borderWidth: 1,
+    borderColor: Colors.primary + '40',
   },
-  promoteBtnText: { fontSize: 13, fontWeight: '600' as const, color: Colors.socialConnection },
+  promoteBtnText: { fontSize: 13, fontWeight: '700' as const, color: Colors.primaryDark },
   demoteBtn: {
     backgroundColor: Colors.riskySubstancesLight,
     borderColor: Colors.riskySubstances + '30',
