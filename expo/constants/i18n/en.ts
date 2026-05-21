@@ -96,6 +96,22 @@ const en = {
       social: 'Social',
       avoid: 'Avoid',
     },
+    todaysTasks: "Today's Tasks",
+    tasks: {
+      logBreakfast: 'Log breakfast',
+      tenMinWalk: '10-minute walk',
+      drinkWater: 'Drink 8 glasses of water',
+      logLunch: 'Log lunch',
+      eveningMeditation: 'Evening meditation',
+    },
+    coachTip: 'Coach Tip',
+    coachTips: {
+      default: 'Small steps add up. Stay consistent today and your weekly stats will thank you.',
+      lowSteps: 'Your step count is a bit low. Try a 10-minute walk after your next meal to get moving.',
+      greatSteps: 'Excellent movement today! Keep this momentum to crush your weekly goal.',
+      lowNutrition: "You haven't logged much yet today. A balanced meal now will keep your energy up.",
+      greatProgress: 'Great progress this week! Try adding 15 minutes of walking after lunch to boost your energy.',
+    },
   },
   meal: {
     logMeal: 'Log Meal',

@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Camera, BookOpen, Dumbbell, Moon, Flame, Star, RefreshCw,
-  Target, BarChart3, Beaker, AlertTriangle, ChevronDown, Check, ChevronRight,
+  Target, BarChart3, Beaker, AlertTriangle, ChevronDown, Check, ChevronRight, TrendingUp,
 } from 'lucide-react-native';
 import Svg, { Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
@@ -454,6 +454,146 @@ const calorieStyles = StyleSheet.create({
   },
 });
 
+interface TaskItem { id: string; label: string; done: boolean }
+
+const TodaysTasksCard = React.memo(function TodaysTasksCard({
+  tasks, onToggle,
+}: { tasks: TaskItem[]; onToggle: (id: string) => void }) {
+  const { t } = useLanguage();
+  const completed = tasks.filter(x => x.done).length;
+  return (
+    <View style={taskStyles.card} testID="todays-tasks">
+      <View style={taskStyles.headerRow}>
+        <Text style={taskStyles.title}>{t('dashboard.todaysTasks')}</Text>
+        <Text style={taskStyles.count}>{completed}/{tasks.length}</Text>
+      </View>
+      <View style={{ height: 12 }} />
+      {tasks.map(task => (
+        <TouchableOpacity
+          key={task.id}
+          activeOpacity={0.7}
+          onPress={() => onToggle(task.id)}
+          style={taskStyles.row}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        >
+          <View style={[taskStyles.checkbox, task.done && taskStyles.checkboxDone]}>
+            {task.done && <Check size={14} color={Colors.white} strokeWidth={3} />}
+          </View>
+          <Text
+            style={[
+              taskStyles.label,
+              task.done && taskStyles.labelDone,
+            ]}
+          >
+            {task.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+});
+
+const taskStyles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 14,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#F1F3F6',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  title: { fontSize: 18, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.3 },
+  count: { fontSize: 13, color: Colors.textTertiary, fontWeight: '600' as const },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    gap: 14,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#D9DDE3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.white,
+  },
+  checkboxDone: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  label: { fontSize: 15, color: Colors.text, fontWeight: '500' as const, flex: 1 },
+  labelDone: {
+    color: Colors.textTertiary,
+    textDecorationLine: 'line-through' as const,
+  },
+});
+
+const CoachTipCard = React.memo(function CoachTipCard({ tip }: { tip: string }) {
+  const { t } = useLanguage();
+  return (
+    <View style={coachStyles.card} testID="coach-tip">
+      <View style={coachStyles.iconWrap}>
+        <TrendingUp size={20} color={Colors.white} strokeWidth={2.5} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={coachStyles.title}>{t('dashboard.coachTip')}</Text>
+        <Text style={coachStyles.body}>{tip}</Text>
+      </View>
+    </View>
+  );
+});
+
+const coachStyles = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    backgroundColor: Colors.primary,
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 24,
+    shadowColor: Colors.primaryDark,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 5,
+  },
+  iconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '800' as const,
+    color: Colors.white,
+    marginBottom: 4,
+    letterSpacing: -0.2,
+  },
+  body: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.95)',
+    fontWeight: '500' as const,
+    lineHeight: 20,
+  },
+});
+
 export default function DashboardScreen() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -538,6 +678,51 @@ export default function DashboardScreen() {
   const totalCaloriesBurnt = stepsCalories + activityCalories;
 
   const earnedBadges = useMemo(() => badges.filter(b => b.earned), [badges]);
+  void earnedBadges;
+
+  const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
+
+  const baseTasks = useMemo(() => {
+    const hasBreakfast = todayMeals.some(m => (m.mealType ?? '').toLowerCase().includes('breakfast'));
+    const hasLunch = todayMeals.some(m => (m.mealType ?? '').toLowerCase().includes('lunch'));
+    const walkDone = dailySteps >= 1000;
+    return [
+      { id: 'log-breakfast', label: t('dashboard.tasks.logBreakfast'), auto: hasBreakfast || todayMeals.length >= 1 },
+      { id: 'walk-10', label: t('dashboard.tasks.tenMinWalk'), auto: walkDone },
+      { id: 'water-8', label: t('dashboard.tasks.drinkWater'), auto: false },
+      { id: 'log-lunch', label: t('dashboard.tasks.logLunch'), auto: hasLunch || todayMeals.length >= 2 },
+      { id: 'meditate', label: t('dashboard.tasks.eveningMeditation'), auto: false },
+    ];
+  }, [todayMeals, dailySteps, t]);
+
+  const todaysTasks = useMemo(() => baseTasks.map(b => ({
+    ...b,
+    done: b.auto || completedTaskIds.includes(b.id),
+  })), [baseTasks, completedTaskIds]);
+
+  const toggleTask = useCallback((id: string) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setCompletedTaskIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  }, []);
+
+  const coachTip = useMemo(() => {
+    const stepsRatio = dailySteps / Math.max(stepGoal, 1);
+    const nutritionRatio = nutritionTotals.calories / Math.max(targets.calories, 1);
+    if (stepsRatio < 0.4) {
+      return t('dashboard.coachTips.lowSteps');
+    }
+    if (stepsRatio >= 0.9) {
+      return t('dashboard.coachTips.greatSteps');
+    }
+    if (nutritionRatio < 0.3 && new Date().getHours() >= 14) {
+      return t('dashboard.coachTips.lowNutrition');
+    }
+    if (todayPoints >= 30) {
+      return t('dashboard.coachTips.greatProgress');
+    }
+    return t('dashboard.coachTips.default');
+  }, [dailySteps, stepGoal, nutritionTotals.calories, targets.calories, todayPoints, t]);
+
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return t('dashboard.goodMorning');
@@ -780,7 +965,7 @@ export default function DashboardScreen() {
             <Text style={styles.sectionTitle}>{t('dashboard.explore')}</Text>
             <View style={styles.exploreRow}>
               <TouchableOpacity
-                style={styles.exploreCard}
+                style={styles.actionCard}
                 onPress={() => {
                   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   router.push('/missions' as any);
@@ -788,13 +973,13 @@ export default function DashboardScreen() {
                 activeOpacity={0.7}
                 testID="missions-btn"
               >
-                <View style={[styles.exploreIconWrap, { backgroundColor: Colors.sleepLight }]}>
-                  <Target size={22} color={Colors.sleep} />
+                <View style={[styles.actionIconWrap, { backgroundColor: Colors.sleepLight }]}>
+                  <Target size={24} color={Colors.sleep} />
                 </View>
-                <Text style={styles.exploreLabel}>{t('dashboard.missions')}</Text>
+                <Text style={styles.actionLabel}>{t('dashboard.missions')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.exploreCard}
+                style={styles.actionCard}
                 onPress={() => {
                   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   router.push('/weekly-report' as any);
@@ -802,16 +987,16 @@ export default function DashboardScreen() {
                 activeOpacity={0.7}
                 testID="report-btn"
               >
-                <View style={[styles.exploreIconWrap, { backgroundColor: Colors.moodLight }]}>
-                  <BarChart3 size={22} color={Colors.mood} />
+                <View style={[styles.actionIconWrap, { backgroundColor: Colors.moodLight }]}>
+                  <BarChart3 size={24} color={Colors.mood} />
                 </View>
-                <Text style={styles.exploreLabel}>{t('dashboard.weeklyReport')}</Text>
+                <Text style={styles.actionLabel}>{t('dashboard.weeklyReport')}</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.exploreRow}>
               <TouchableOpacity
-                style={[styles.exploreCard, { backgroundColor: '#E0F2F1' }]}
+                style={styles.actionCard}
                 onPress={() => {
                   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   router.push('/health-markers' as any);
@@ -819,41 +1004,20 @@ export default function DashboardScreen() {
                 activeOpacity={0.7}
                 testID="health-markers-btn"
               >
-                <Beaker size={22} color="#00897B" />
-                <Text style={[styles.exploreLabel, { color: '#00897B' }]}>{t('dashboard.healthMarkers')}</Text>
+                <View style={[styles.actionIconWrap, { backgroundColor: Colors.socialConnectionLight }]}>
+                  <Beaker size={24} color={Colors.socialConnection} />
+                </View>
+                <Text style={styles.actionLabel}>{t('dashboard.healthMarkers')}</Text>
               </TouchableOpacity>
               <View style={{ flex: 1 }} />
             </View>
 
-            {earnedBadges.length > 0 && (
-              <>
-                <Text style={styles.sectionTitle}>{t('dashboard.badgesEarned')}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.badgeScroll}>
-                  {earnedBadges.map(badge => (
-                    <View key={badge.id} style={[styles.badgeCard, { borderColor: badge.color }]}>
-                      <Text style={styles.badgeEmoji}>{badge.icon}</Text>
-                      <Text style={styles.badgeName}>{badge.name}</Text>
-                    </View>
-                  ))}
-                </ScrollView>
-              </>
-            )}
+            <TodaysTasksCard
+              tasks={todaysTasks}
+              onToggle={toggleTask}
+            />
 
-            <View style={styles.pillarStrip}>
-              {[
-                { label: t('dashboard.pillars.nutrition'), color: Colors.nutrition },
-                { label: t('dashboard.pillars.activity'), color: Colors.physicalActivity },
-                { label: t('dashboard.pillars.sleep'), color: Colors.sleep },
-                { label: t('dashboard.pillars.stress'), color: Colors.stressManagement },
-                { label: t('dashboard.pillars.social'), color: Colors.socialConnection },
-                { label: t('dashboard.pillars.avoid'), color: Colors.riskySubstances },
-              ].map(p => (
-                <View key={p.label} style={styles.pillarStripItem}>
-                  <View style={[styles.pillarStripDot, { backgroundColor: p.color }]} />
-                  <Text style={styles.pillarStripLabel}>{p.label}</Text>
-                </View>
-              ))}
-            </View>
+            <CoachTipCard tip={coachTip} />
           </ScrollView>
         </Animated.View>
       </SafeAreaView>

@@ -98,6 +98,22 @@ const id: TranslationKeys = {
       social: 'Sosial',
       avoid: 'Hindari',
     },
+    todaysTasks: 'Tugas Hari Ini',
+    tasks: {
+      logBreakfast: 'Catat sarapan',
+      tenMinWalk: 'Jalan kaki 10 menit',
+      drinkWater: 'Minum 8 gelas air',
+      logLunch: 'Catat makan siang',
+      eveningMeditation: 'Meditasi malam',
+    },
+    coachTip: 'Tip Pelatih',
+    coachTips: {
+      default: 'Langkah kecil itu berarti. Konsisten hari ini, statistik mingguanmu akan berterima kasih.',
+      lowSteps: 'Langkahmu masih sedikit. Coba jalan 10 menit setelah makan untuk menggerakkan tubuh.',
+      greatSteps: 'Gerakanmu hebat hari ini! Pertahankan untuk meraih target mingguan.',
+      lowNutrition: 'Kamu belum banyak mencatat hari ini. Makanan seimbang sekarang akan menjaga energimu.',
+      greatProgress: 'Progres mingguan yang hebat! Tambahkan 15 menit jalan setelah makan siang untuk energi ekstra.',
+    },
   },
   meal: {
     logMeal: 'Catat Makanan',
