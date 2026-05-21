@@ -34,10 +34,10 @@ interface NutrientTileData {
 }
 
 const QUICK_ACTIONS = [
-  { id: 'meal', labelKey: 'dashboard.logMeal', icon: Camera, color: Colors.nutrition, bg: Colors.nutritionLight, route: '/meal-logger' },
-  { id: 'journal', labelKey: 'dashboard.journal', icon: BookOpen, color: Colors.stressManagement, bg: Colors.stressManagementLight, route: '/journal-logger' },
-  { id: 'activity', labelKey: 'dashboard.activity', icon: Dumbbell, color: Colors.physicalActivity, bg: Colors.physicalActivityLight, route: '/activity-logger' },
-  { id: 'sleep', labelKey: 'dashboard.sleep', icon: Moon, color: Colors.sleep, bg: Colors.sleepLight, route: '/sleep-history' },
+  { id: 'meal', labelKey: 'dashboard.logMeal', icon: Camera, color: Colors.nutrition, route: '/meal-logger' },
+  { id: 'journal', labelKey: 'dashboard.journal', icon: BookOpen, color: Colors.stressManagement, route: '/journal-logger' },
+  { id: 'activity', labelKey: 'dashboard.activity', icon: Dumbbell, color: Colors.physicalActivity, route: '/activity-logger' },
+  { id: 'sleep', labelKey: 'dashboard.sleep', icon: Moon, color: Colors.sleep, route: '/sleep-history' },
 ] as const;
 
 const DEFAULT_TARGETS: NutrientTargets = {
@@ -953,8 +953,8 @@ export default function DashboardScreen() {
                     activeOpacity={0.7}
                     testID={`action-${action.id}`}
                   >
-                    <View style={[styles.actionIconWrap, { backgroundColor: action.bg }]}>
-                      <IconComp size={24} color={action.color} />
+                    <View style={[styles.actionIconWrap, { backgroundColor: action.color, shadowColor: action.color }]}>
+                      <IconComp size={24} color={Colors.white} strokeWidth={2.2} />
                     </View>
                     <Text style={styles.actionLabel}>{t(action.labelKey)}</Text>
                   </TouchableOpacity>
@@ -973,8 +973,8 @@ export default function DashboardScreen() {
                 activeOpacity={0.7}
                 testID="missions-btn"
               >
-                <View style={[styles.actionIconWrap, { backgroundColor: Colors.sleepLight }]}>
-                  <Target size={24} color={Colors.sleep} />
+                <View style={[styles.actionIconWrap, { backgroundColor: Colors.sleep, shadowColor: Colors.sleep }]}>
+                  <Target size={24} color={Colors.white} strokeWidth={2.2} />
                 </View>
                 <Text style={styles.actionLabel}>{t('dashboard.missions')}</Text>
               </TouchableOpacity>
@@ -987,8 +987,8 @@ export default function DashboardScreen() {
                 activeOpacity={0.7}
                 testID="report-btn"
               >
-                <View style={[styles.actionIconWrap, { backgroundColor: Colors.moodLight }]}>
-                  <BarChart3 size={24} color={Colors.mood} />
+                <View style={[styles.actionIconWrap, { backgroundColor: Colors.mood, shadowColor: Colors.mood }]}>
+                  <BarChart3 size={24} color={Colors.white} strokeWidth={2.2} />
                 </View>
                 <Text style={styles.actionLabel}>{t('dashboard.weeklyReport')}</Text>
               </TouchableOpacity>
@@ -1004,8 +1004,8 @@ export default function DashboardScreen() {
                 activeOpacity={0.7}
                 testID="health-markers-btn"
               >
-                <View style={[styles.actionIconWrap, { backgroundColor: Colors.socialConnectionLight }]}>
-                  <Beaker size={24} color={Colors.socialConnection} />
+                <View style={[styles.actionIconWrap, { backgroundColor: Colors.socialConnection, shadowColor: Colors.socialConnection }]}>
+                  <Beaker size={24} color={Colors.white} strokeWidth={2.2} />
                 </View>
                 <Text style={styles.actionLabel}>{t('dashboard.healthMarkers')}</Text>
               </TouchableOpacity>
@@ -1030,7 +1030,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   safeTop: { flex: 1 },
-  scroll: { paddingHorizontal: 20, paddingBottom: 30, paddingTop: 8 },
+  scroll: { paddingHorizontal: 20, paddingBottom: 90, paddingTop: 8 },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   avatarCircle: {
     width: 52, height: 52, borderRadius: 26, backgroundColor: Colors.socialConnection,
@@ -1257,6 +1257,10 @@ const styles = StyleSheet.create({
   },
   actionIconWrap: {
     width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.28,
+    shadowRadius: 10,
+    elevation: 4,
   },
   actionLabel: { fontSize: 15, fontWeight: '700' as const, color: Colors.text },
   badgeScroll: { marginBottom: 24 },
