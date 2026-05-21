@@ -1,37 +1,9 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { getSupabase, testSupabaseConnection, directRestInsert } from "./supabase";
+import { getSupabase, directRestInsert } from "./supabase";
 
 const app = new Hono();
 app.use("*", cors());
-
-void testSupabaseConnection().then((ok) => {
-  console.log(`[Backend] Supabase startup check: ${ok ? 'CONNECTED' : 'FAILED'}`);
-});
-
-const BACKEND_SELF_URL = process.env.EXPO_PUBLIC_RORK_API_BASE_URL || '';
-if (BACKEND_SELF_URL) {
-  const HEARTBEAT_INTERVAL = 60 * 1000;
-  setInterval(async () => {
-    try {
-      const res = await fetch(`${BACKEND_SELF_URL}/api/health`);
-      const body = await res.json().catch(() => null);
-      console.log(`[Heartbeat] Ping successful: ${new Date().toISOString()} status=${res.status} supabase=${body?.supabase ?? 'unknown'}`);
-    } catch (e) {
-      console.log(`[Heartbeat] Ping FAILED at ${new Date().toISOString()}:`, e);
-    }
-  }, HEARTBEAT_INTERVAL);
-  console.log(`[Backend] Heartbeat started, pinging every ${HEARTBEAT_INTERVAL / 1000}s (1 minute) at ${new Date().toISOString()}`);
-
-  setTimeout(async () => {
-    try {
-      const res = await fetch(`${BACKEND_SELF_URL}/api/health`);
-      console.log(`[Heartbeat] Initial warmup ping: ${res.status} at ${new Date().toISOString()}`);
-    } catch (e) {
-      console.log('[Heartbeat] Initial warmup ping failed:', e);
-    }
-  }, 5000);
-}
 
 interface DbUser {
   id: string;
