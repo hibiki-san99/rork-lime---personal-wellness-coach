@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, Animated, TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Lightbulb, Sparkles, CheckCircle, Circle, ChevronRight, Trophy } from 'lucide-react-native';
+import { CheckCircle2, Circle, ChevronRight, Trophy, Flame } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
@@ -35,11 +35,43 @@ export default function TipsScreen() {
   }, []);
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+  const completedToday = useMemo(
+    () => todayTips.filter(tp => isTipCompletedToday(tp.id)).length,
+    [todayTips, isTipCompletedToday]
+  );
+  const totalToday = todayTips.length;
+  const pct = totalToday === 0 ? 0 : Math.round((completedToday / totalToday) * 100);
+
   const todayTipPoints = useMemo(() => {
     return tipCompletions
       .filter(tc => tc.date === todayStr)
       .reduce((sum, tc) => sum + tc.points, 0);
   }, [tipCompletions, todayStr]);
+
+  // Streak: count distinct dates with at least one tip completion, ending at today
+  const tipStreakDays = useMemo(() => {
+    const dates = new Set(tipCompletions.map(tc => tc.date));
+    let count = 0;
+    const cursor = new Date();
+    for (let i = 0; i < 365; i++) {
+      const ds = cursor.toISOString().split('T')[0] ?? '';
+      if (dates.has(ds)) {
+        count += 1;
+        cursor.setDate(cursor.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return count;
+  }, [tipCompletions]);
+
+  const motivation = useMemo(() => {
+    if (pct === 0) return "Fresh insights, fresh wins 🌱";
+    if (pct < 50) return "Nice — knowledge is fuel 🔥";
+    if (pct < 100) return "You're doing great! Keep going 💪";
+    return "All caught up. Legend! 🏆";
+  }, [pct]);
 
   const handleToggleTip = useCallback((tipId: string) => {
     if (isTipCompletedToday(tipId)) return;
@@ -72,68 +104,67 @@ export default function TipsScreen() {
       <SafeAreaView edges={['top']} style={styles.safe}>
         <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
           <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-            <View style={styles.headerSection}>
-              <Lightbulb size={28} color={Colors.physicalActivity} />
-              <Text style={styles.headerTitle}>{t('tips.headerTitle')}</Text>
-              <Text style={styles.headerSub}>{t('tips.headerSub')}</Text>
+            <Text style={styles.pageTitle}>{t('tips.headerTitle')}</Text>
+            <Text style={styles.pageSub}>{t('tips.headerSub')}</Text>
+
+            {/* Hero progress card */}
+            <View style={styles.heroCard}>
+              <Text style={styles.heroLabel}>Today's Insights</Text>
+              <View style={styles.heroRow}>
+                <Text style={styles.heroBig}>{completedToday}/{totalToday}</Text>
+                <Text style={styles.heroPct}>{pct}%</Text>
+              </View>
+              <View style={styles.heroBarBg}>
+                <View style={[styles.heroBarFill, { width: `${pct}%` as any }]} />
+              </View>
+              <Text style={styles.heroMsg}>
+                {todayTipPoints > 0 ? `${motivation}  ·  +${todayTipPoints} pts today` : motivation}
+              </Text>
             </View>
 
-            {todayTipPoints > 0 && (
-              <View style={styles.pointsBanner}>
-                <Text style={styles.pointsBannerText}>
-                  {t('tips.pointsBanner', { points: todayTipPoints })}
-                </Text>
-              </View>
-            )}
-
-            <Text style={styles.sectionTitle}>
-              <Sparkles size={16} color={Colors.physicalActivity} />{' '}{t('tips.todaysTips')}
-            </Text>
-            <Text style={styles.sectionHint}>
-              {t('tips.sectionHint', { points: POINTS_PER_TIP })}
-            </Text>
-
-            {todayTips.map((tip, idx) => {
+            {todayTips.map((tip) => {
               const done = isTipCompletedToday(tip.id);
               return (
-                <View key={tip.id + '-' + idx} style={[styles.tipCard, done && styles.tipCardDone]}>
-                  <View style={[styles.tipPillarBadge, { backgroundColor: tip.color + '18' }]}>
-                    <View style={[styles.tipPillarDot, { backgroundColor: tip.color }]} />
-                    <Text style={[styles.tipPillarText, { color: tip.color }]}>{pillarLabel(tip.pillar)}</Text>
-                  </View>
-                  <Text style={styles.tipText}>{tipContent(tip.id, tip.tip)}</Text>
-                  <TouchableOpacity
-                    style={[styles.readBtn, done && styles.readBtnDone]}
-                    onPress={() => handleToggleTip(tip.id)}
-                    disabled={done}
-                    activeOpacity={0.7}
-                  >
+                <TouchableOpacity
+                  key={tip.id}
+                  style={styles.insightCard}
+                  onPress={() => handleToggleTip(tip.id)}
+                  disabled={done}
+                  activeOpacity={done ? 1 : 0.7}
+                >
+                  <View style={styles.checkCol}>
                     {done ? (
-                      <CheckCircle size={18} color={Colors.nutrition} />
-                    ) : (
-                      <Circle size={18} color={Colors.textTertiary} />
-                    )}
-                    <Text style={[styles.readBtnText, done && styles.readBtnTextDone]}>
-                      {done ? t('tips.completed') : t('tips.iveReadThis')}
-                    </Text>
-                    {!done && (
-                      <View style={styles.ptsBadge}>
-                        <Text style={styles.ptsBadgeText}>+{POINTS_PER_TIP}</Text>
+                      <View style={[styles.checkDone, { borderColor: tip.color }]}>
+                        <CheckCircle2 size={22} color={tip.color} fill={tip.color + '20'} />
                       </View>
+                    ) : (
+                      <Circle size={26} color={Colors.textTertiary} strokeWidth={1.5} />
                     )}
-                  </TouchableOpacity>
-                </View>
+                  </View>
+                  <View style={styles.insightBody}>
+                    <View style={[styles.pillarBadge, { backgroundColor: tip.color + '18' }]}>
+                      <View style={[styles.pillarDot, { backgroundColor: tip.color }]} />
+                      <Text style={[styles.pillarText, { color: tip.color }]}>{pillarLabel(tip.pillar)}</Text>
+                    </View>
+                    <Text style={[styles.tipText, done && styles.tipTextDone]}>
+                      {tipContent(tip.id, tip.tip)}
+                    </Text>
+                    <View style={styles.miniBarBg}>
+                      <View style={[styles.miniBarFill, { backgroundColor: tip.color, width: done ? '100%' : '0%' }]} />
+                    </View>
+                    <View style={styles.cardFooter}>
+                      <Flame size={14} color={done ? '#F97316' : Colors.textTertiary} fill={done ? '#F97316' : 'transparent'} />
+                      <Text style={[styles.cardFooterText, done && { color: '#F97316' }]}>
+                        {done ? `${tipStreakDays || 1} day streak` : `+${POINTS_PER_TIP} pts · tap to read`}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
               );
             })}
 
-            <View style={styles.divider} />
-
-            <View style={styles.missionsSectionHeader}>
-              <View>
-                <Text style={styles.sectionTitle}>{t('tips.missionsHeader')}</Text>
-                <Text style={styles.sectionSub}>{t('tips.missionsSub')}</Text>
-              </View>
-            </View>
+            <Text style={styles.sectionTitle}>{t('tips.missionsHeader')}</Text>
+            <Text style={styles.pageSub}>{t('tips.missionsSub')}</Text>
 
             {MISSION_MODULES.map((mod) => {
               const progress = getMissionProgress(mod.id);
@@ -141,50 +172,54 @@ export default function TipsScreen() {
               const completedCount = progress?.completedGoalIds.length ?? 0;
               const totalGoals = mod.goals.length;
               const allDone = enrolled && completedCount >= totalGoals;
+              const modPct = enrolled ? Math.round((completedCount / totalGoals) * 100) : 0;
 
               return (
                 <TouchableOpacity
                   key={mod.id}
-                  style={styles.moduleCard}
+                  style={styles.insightCard}
                   onPress={() => {
                     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     router.push('/missions' as any);
                   }}
                   activeOpacity={0.7}
                 >
-                  <View style={[styles.moduleIconWrap, { backgroundColor: mod.color + '15' }]}>
-                    <Text style={styles.moduleIcon}>{mod.icon}</Text>
-                  </View>
-                  <View style={styles.moduleInfo}>
-                    <Text style={styles.moduleName}>{moduleName(mod.id)}</Text>
-                    <Text style={styles.moduleGoalCount}>{t('tips.microGoals', { n: totalGoals })}</Text>
-                    {enrolled && (
-                      <View style={styles.moduleProgressRow}>
-                        <View style={styles.moduleProgressBg}>
-                          <View
-                            style={[
-                              styles.moduleProgressFill,
-                              {
-                                backgroundColor: mod.color,
-                                width: `${(completedCount / totalGoals) * 100}%` as any,
-                              },
-                            ]}
-                          />
-                        </View>
-                        <Text style={[styles.moduleProgressText, { color: mod.color }]}>
-                          {completedCount}/{totalGoals}
-                        </Text>
+                  <View style={styles.checkCol}>
+                    {allDone ? (
+                      <View style={[styles.checkDone, { borderColor: mod.color }]}>
+                        <CheckCircle2 size={22} color={mod.color} fill={mod.color + '20'} />
+                      </View>
+                    ) : (
+                      <View style={[styles.moduleIconTile, { backgroundColor: mod.color }]}>
+                        <Text style={styles.moduleIconEmoji}>{mod.icon}</Text>
                       </View>
                     )}
                   </View>
-                  <View style={styles.moduleRight}>
+                  <View style={styles.insightBody}>
+                    <Text style={[styles.modName, allDone && styles.tipTextDone]}>{moduleName(mod.id)}</Text>
+                    <Text style={styles.modSub}>
+                      {enrolled ? `${completedCount}/${totalGoals} goals` : t('tips.microGoals', { n: totalGoals })}
+                    </Text>
+                    <View style={styles.miniBarBg}>
+                      <View style={[styles.miniBarFill, { backgroundColor: mod.color, width: `${modPct}%` as any }]} />
+                    </View>
+                    <View style={styles.cardFooter}>
+                      {enrolled ? (
+                        <>
+                          <Flame size={14} color="#F97316" fill="#F97316" />
+                          <Text style={[styles.cardFooterText, { color: '#F97316' }]}>
+                            {allDone ? 'Mission complete' : `${completedCount} done`}
+                          </Text>
+                        </>
+                      ) : (
+                        <Text style={[styles.cardFooterText, { color: Colors.textTertiary }]}>Tap to start</Text>
+                      )}
+                    </View>
+                  </View>
+                  <View style={styles.rightCol}>
                     {allDone ? (
-                      <View style={[styles.moduleBadge, { backgroundColor: mod.color + '15' }]}>
-                        <Trophy size={16} color={mod.color} />
-                      </View>
-                    ) : enrolled ? (
-                      <View style={[styles.moduleBadge, { backgroundColor: mod.color + '15' }]}>
-                        <Text style={[styles.moduleBadgeText, { color: mod.color }]}>{t('tips.active')}</Text>
+                      <View style={[styles.trophyPill, { backgroundColor: mod.color + '15' }]}>
+                        <Trophy size={14} color={mod.color} />
                       </View>
                     ) : (
                       <ChevronRight size={20} color={Colors.textTertiary} />
@@ -193,13 +228,6 @@ export default function TipsScreen() {
                 </TouchableOpacity>
               );
             })}
-
-            <View style={styles.motivationCard}>
-              <Text style={styles.motivationEmoji}>💡</Text>
-              <Text style={styles.motivationText}>
-                {t('tips.motivation')}
-              </Text>
-            </View>
           </ScrollView>
         </Animated.View>
       </SafeAreaView>
@@ -210,81 +238,64 @@ export default function TipsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   safe: { flex: 1 },
-  scroll: { padding: 20, paddingBottom: 30 },
-  headerSection: { alignItems: 'center', marginBottom: 20, paddingTop: 8 },
-  headerTitle: {
-    fontSize: 26, fontWeight: '800' as const, color: Colors.text, marginTop: 10, letterSpacing: -0.5,
+  scroll: { padding: 20, paddingBottom: 40 },
+
+  pageTitle: { fontSize: 32, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.8 },
+  pageSub: { fontSize: 14, color: Colors.textSecondary, marginTop: 4, marginBottom: 18 },
+
+  heroCard: {
+    backgroundColor: Colors.primary,
+    borderRadius: 22, padding: 20, marginBottom: 22,
+    shadowColor: Colors.primary, shadowOpacity: 0.18, shadowRadius: 16, shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
+    overflow: 'hidden',
   },
-  headerSub: { fontSize: 14, color: Colors.textSecondary, marginTop: 4 },
-  pointsBanner: {
-    backgroundColor: '#FFF8E1', borderRadius: 12, padding: 12, marginBottom: 16,
-    borderWidth: 1, borderColor: '#FFE082', alignItems: 'center',
-  },
-  pointsBannerText: { fontSize: 14, fontWeight: '600' as const, color: '#E65100' },
-  sectionTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text, marginBottom: 4 },
-  sectionHint: { fontSize: 12, color: Colors.textTertiary, marginBottom: 10 },
-  sectionSub: { fontSize: 13, color: Colors.textSecondary, marginTop: 2 },
-  tipCard: {
-    backgroundColor: Colors.card, borderRadius: 16, padding: 18, marginTop: 12,
+  heroLabel: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, opacity: 0.9 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 },
+  heroBig: { color: Colors.white, fontSize: 38, fontWeight: '800' as const, letterSpacing: -1 },
+  heroPct: { color: Colors.white, fontSize: 40, fontWeight: '800' as const, opacity: 0.28, letterSpacing: -1 },
+  heroBarBg: { height: 8, backgroundColor: 'rgba(255,255,255,0.28)', borderRadius: 4, overflow: 'hidden', marginTop: 10 },
+  heroBarFill: { height: 8, backgroundColor: Colors.white, borderRadius: 4 },
+  heroMsg: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, marginTop: 12, opacity: 0.95 },
+
+  sectionTitle: { fontSize: 22, fontWeight: '800' as const, color: Colors.text, marginTop: 12, letterSpacing: -0.4 },
+
+  insightCard: {
+    flexDirection: 'row', alignItems: 'flex-start', backgroundColor: Colors.card,
+    borderRadius: 18, padding: 16, marginBottom: 12,
     borderWidth: 1, borderColor: Colors.cardBorder,
+    shadowColor: '#0F172A', shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
   },
-  tipCardDone: {
-    borderColor: Colors.nutrition + '40', backgroundColor: '#FAFFF9',
+  checkCol: { marginRight: 14, paddingTop: 2 },
+  checkDone: {
+    width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2,
   },
-  tipPillarBadge: {
+  moduleIconTile: {
+    width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: Colors.white,
+  },
+  moduleIconEmoji: { fontSize: 22 },
+  insightBody: { flex: 1 },
+  rightCol: { marginLeft: 8, paddingTop: 10 },
+  trophyPill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
+
+  pillarBadge: {
     flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, gap: 6, marginBottom: 10,
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, gap: 5, marginBottom: 6,
   },
-  tipPillarDot: { width: 8, height: 8, borderRadius: 4 },
-  tipPillarText: { fontSize: 12, fontWeight: '600' as const },
-  tipText: { fontSize: 15, color: Colors.text, lineHeight: 22, marginBottom: 14 },
-  readBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10,
-    backgroundColor: Colors.inputBg,
-  },
-  readBtnDone: {
-    backgroundColor: '#E8F5E9',
-  },
-  readBtnText: { fontSize: 13, fontWeight: '600' as const, color: Colors.textSecondary, flex: 1 },
-  readBtnTextDone: { color: Colors.nutrition },
-  ptsBadge: {
-    backgroundColor: Colors.physicalActivityLight, paddingHorizontal: 8, paddingVertical: 3,
-    borderRadius: 6,
-  },
-  ptsBadgeText: { fontSize: 11, fontWeight: '700' as const, color: Colors.physicalActivity },
-  divider: { height: 1, backgroundColor: Colors.divider, marginVertical: 24 },
-  missionsSectionHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
-    marginBottom: 14,
-  },
-  moduleCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.card,
-    borderRadius: 16, padding: 16, marginBottom: 10,
-    borderWidth: 1, borderColor: Colors.cardBorder,
-  },
-  moduleIconWrap: {
-    width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
-    marginRight: 12,
-  },
-  moduleIcon: { fontSize: 24 },
-  moduleInfo: { flex: 1 },
-  moduleName: { fontSize: 15, fontWeight: '700' as const, color: Colors.text },
-  moduleGoalCount: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-  moduleProgressRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
-  moduleProgressBg: { flex: 1, height: 4, backgroundColor: Colors.inputBg, borderRadius: 2, overflow: 'hidden' },
-  moduleProgressFill: { height: 4, borderRadius: 2 },
-  moduleProgressText: { fontSize: 11, fontWeight: '700' as const },
-  moduleRight: { marginLeft: 8 },
-  moduleBadge: {
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8,
-  },
-  moduleBadgeText: { fontSize: 11, fontWeight: '600' as const },
-  motivationCard: {
-    backgroundColor: '#FFF8E1', borderRadius: 16, padding: 20, marginTop: 20,
-    flexDirection: 'row', alignItems: 'flex-start', gap: 12,
-    borderWidth: 1, borderColor: '#FFE082',
-  },
-  motivationEmoji: { fontSize: 24, marginTop: 2 },
-  motivationText: { flex: 1, fontSize: 14, color: '#BF360C', lineHeight: 21, fontWeight: '500' as const },
+  pillarDot: { width: 6, height: 6, borderRadius: 3 },
+  pillarText: { fontSize: 10, fontWeight: '700' as const, letterSpacing: 0.2 },
+
+  tipText: { fontSize: 14, color: Colors.text, lineHeight: 20, fontWeight: '600' as const },
+  tipTextDone: { textDecorationLine: 'line-through', color: Colors.textTertiary, fontWeight: '500' as const },
+
+  modName: { fontSize: 16, fontWeight: '700' as const, color: Colors.text },
+  modSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+
+  miniBarBg: { height: 6, backgroundColor: Colors.inputBg, borderRadius: 3, overflow: 'hidden', marginTop: 10 },
+  miniBarFill: { height: 6, borderRadius: 3 },
+  cardFooter: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  cardFooterText: { fontSize: 12, fontWeight: '700' as const, color: Colors.textTertiary },
 });
