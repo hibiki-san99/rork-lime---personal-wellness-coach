@@ -107,6 +107,14 @@ const id: TranslationKeys = {
       eveningMeditation: 'Meditasi malam',
     },
     coachTip: 'Tip Pelatih',
+    calorieMsg: {
+      start: 'Mulai isi energi harianmu 🌱',
+      early: 'Awal yang bagus — jaga keseimbangan 💪',
+      mid: 'Kamu di jalur yang tepat ⚡',
+      almost: 'Hampir mencapai target 🔥',
+      hit: 'Target harian tercapai 🏆',
+      over: 'Melebihi target — makan lebih ringan berikutnya 🍃',
+    },
     coachTips: {
       default: 'Langkah kecil itu berarti. Konsisten hari ini, statistik mingguanmu akan berterima kasih.',
       lowSteps: 'Langkahmu masih sedikit. Coba jalan 10 menit setelah makan untuk menggerakkan tubuh.',

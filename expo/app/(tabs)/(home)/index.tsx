@@ -6,9 +6,8 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Camera, BookOpen, Dumbbell, Moon, Flame, Star, RefreshCw,
-  Target, BarChart3, Beaker, AlertTriangle, ChevronDown, Check, ChevronRight, TrendingUp,
+  Target, BarChart3, Beaker, AlertTriangle, ChevronDown, Check, ChevronRight, TrendingUp, Footprints, Salad,
 } from 'lucide-react-native';
-import Svg, { Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { useUser } from '@/context/UserContext';
@@ -293,11 +292,6 @@ const barStyles = StyleSheet.create({
   },
 });
 
-const RING_SIZE = 128;
-const RING_STROKE = 14;
-const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
 const CalorieSummaryCard = React.memo(function CalorieSummaryCard({
   consumed,
   goal,
@@ -305,153 +299,72 @@ const CalorieSummaryCard = React.memo(function CalorieSummaryCard({
 }: { consumed: number; goal: number; t: (k: string) => string }) {
   const safeGoal = goal > 0 ? goal : 2000;
   const ratio = Math.min(consumed / safeGoal, 1);
+  const pct = Math.round(ratio * 100);
   const remaining = safeGoal - consumed;
   const exceeded = remaining < 0;
-  const progressAnim = useRef(new Animated.Value(0)).current;
-  const [dashOffset, setDashOffset] = useState<number>(RING_CIRCUMFERENCE);
 
-  useEffect(() => {
-    Animated.timing(progressAnim, {
-      toValue: ratio,
-      duration: 900,
-      useNativeDriver: false,
-    }).start();
-  }, [ratio, progressAnim]);
-
-  useEffect(() => {
-    const id = progressAnim.addListener(({ value }) => {
-      setDashOffset(RING_CIRCUMFERENCE * (1 - value));
-    });
-    return () => progressAnim.removeListener(id);
-  }, [progressAnim]);
+  const motivation = (() => {
+    if (consumed === 0) return t('dashboard.calorieMsg.start');
+    if (exceeded) return t('dashboard.calorieMsg.over');
+    if (ratio < 0.4) return t('dashboard.calorieMsg.early');
+    if (ratio < 0.8) return t('dashboard.calorieMsg.mid');
+    if (ratio < 1) return t('dashboard.calorieMsg.almost');
+    return t('dashboard.calorieMsg.hit');
+  })();
 
   return (
     <View style={calorieStyles.card} testID="calorie-summary-card">
-      <Text style={calorieStyles.title}>{t('dashboard.calorieSummary')}</Text>
+      <Text style={calorieStyles.label}>{t('dashboard.calorieSummary')}</Text>
       <View style={calorieStyles.row}>
-        <View style={calorieStyles.ringWrap}>
-          <Svg width={RING_SIZE} height={RING_SIZE}>
-            <Circle
-              cx={RING_SIZE / 2}
-              cy={RING_SIZE / 2}
-              r={RING_RADIUS}
-              stroke="#EFEFEF"
-              strokeWidth={RING_STROKE}
-              fill="none"
-            />
-            <Circle
-              cx={RING_SIZE / 2}
-              cy={RING_SIZE / 2}
-              r={RING_RADIUS}
-              stroke="#FF7A3D"
-              strokeWidth={RING_STROKE}
-              fill="none"
-              strokeLinecap="round"
-              strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
-              strokeDashoffset={dashOffset}
-              transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
-            />
-          </Svg>
-          <View style={calorieStyles.ringCenter} pointerEvents="none">
-            <Text style={calorieStyles.ringNumber}>{consumed.toLocaleString()}</Text>
-            <Text style={calorieStyles.ringLabel}>{t('dashboard.consumedKcal')}</Text>
-            <Text style={calorieStyles.ringLabel}>{t('dashboard.kcal')}</Text>
-          </View>
+        <View style={{ flex: 1 }}>
+          <Text style={calorieStyles.bigValue}>
+            {consumed.toLocaleString()}
+            <Text style={calorieStyles.bigValueGoal}> / {safeGoal.toLocaleString()}</Text>
+          </Text>
+          <Text style={calorieStyles.unitLabel}>
+            {t('dashboard.kcal')} {exceeded ? `· ${Math.abs(remaining).toLocaleString()} ${t('dashboard.kcal')} over` : `· ${remaining.toLocaleString()} ${t('dashboard.kcal')} left`}
+          </Text>
         </View>
-        <View style={calorieStyles.readouts}>
-          <View style={calorieStyles.readoutBlock}>
-            <View style={calorieStyles.readoutHeader}>
-              <Text style={calorieStyles.readoutEmoji}>{"\uD83D\uDD25"}</Text>
-              <Text style={calorieStyles.readoutLabel}>{t('dashboard.remaining')}:</Text>
-            </View>
-            <Text style={[calorieStyles.readoutValue, exceeded && { color: '#D32F2F' }]}>
-              {exceeded ? `-${Math.abs(remaining).toLocaleString()}` : remaining.toLocaleString()} {t('dashboard.kcal')}
-            </Text>
-          </View>
-          <View style={calorieStyles.readoutBlock}>
-            <View style={calorieStyles.readoutHeader}>
-              <Text style={calorieStyles.readoutEmoji}>{"\uD83D\uDEA9"}</Text>
-              <Text style={calorieStyles.readoutLabel}>{t('dashboard.totalGoal')}:</Text>
-            </View>
-            <Text style={calorieStyles.readoutValue}>{safeGoal.toLocaleString()} {t('dashboard.kcal')}</Text>
-          </View>
-        </View>
+        <Text style={calorieStyles.pct}>{pct}%</Text>
       </View>
+      <View style={calorieStyles.barBg}>
+        <View style={[calorieStyles.barFill, { width: `${Math.min(pct, 100)}%` as any }]} />
+      </View>
+      <Text style={calorieStyles.msg}>{motivation}</Text>
     </View>
   );
 });
 
 const calorieStyles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.card,
-    borderRadius: 18,
-    padding: 18,
+    backgroundColor: Colors.primary,
+    borderRadius: 22,
+    padding: 20,
     marginBottom: 14,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    shadowColor: Colors.primary,
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
+    overflow: 'hidden' as const,
   },
-  title: {
-    fontSize: 17,
-    fontWeight: '700' as const,
-    color: Colors.text,
-    letterSpacing: -0.3,
-    marginBottom: 14,
-  },
+  label: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, opacity: 0.9 },
   row: {
     flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: 16,
+    alignItems: 'flex-end' as const,
+    justifyContent: 'space-between' as const,
+    marginTop: 4,
   },
-  ringWrap: {
-    width: RING_SIZE,
-    height: RING_SIZE,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
+  bigValue: { color: Colors.white, fontSize: 36, fontWeight: '800' as const, letterSpacing: -1 },
+  bigValueGoal: { fontSize: 18, fontWeight: '700' as const, color: 'rgba(255,255,255,0.7)', letterSpacing: -0.4 },
+  unitLabel: { color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '500' as const, marginTop: 2 },
+  pct: { color: Colors.white, fontSize: 40, fontWeight: '800' as const, opacity: 0.28, letterSpacing: -1 },
+  barBg: {
+    height: 8, backgroundColor: 'rgba(255,255,255,0.28)', borderRadius: 4,
+    overflow: 'hidden' as const, marginTop: 10,
   },
-  ringCenter: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-  },
-  ringNumber: {
-    fontSize: 26,
-    fontWeight: '800' as const,
-    color: '#FF7A3D',
-    letterSpacing: -0.8,
-    lineHeight: 30,
-  },
-  ringLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    fontWeight: '500' as const,
-    lineHeight: 14,
-  },
-  readouts: {
-    flex: 1,
-    gap: 14,
-  },
-  readoutBlock: {
-    gap: 2,
-  },
-  readoutHeader: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: 6,
-  },
-  readoutEmoji: {
-    fontSize: 14,
-  },
-  readoutLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '500' as const,
-  },
-  readoutValue: {
-    fontSize: 17,
-    fontWeight: '800' as const,
-    color: Colors.text,
-    letterSpacing: -0.3,
-  },
+  barFill: { height: 8, backgroundColor: Colors.white, borderRadius: 4 },
+  msg: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, marginTop: 12, opacity: 0.95 },
 });
 
 interface TaskItem { id: string; label: string; done: boolean }
@@ -780,18 +693,26 @@ export default function DashboardScreen() {
               t={t}
             />
 
-            <View style={styles.nutritionCard} testID="nutrition-section">
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={toggleNutrition}
-                style={styles.nutritionCardHeader}
-              >
-                <Text style={styles.nutritionCardEmoji}>{"\uD83E\uDD57"}</Text>
-                <Text style={styles.nutritionCardTitle}>{t('dashboard.todaysNutrition')}</Text>
+            <TouchableOpacity
+              style={styles.nutritionCard}
+              activeOpacity={0.85}
+              onPress={toggleNutrition}
+              testID="nutrition-section"
+            >
+              <View style={styles.nutritionCardHeader}>
+                <View style={[styles.iconTile, { backgroundColor: Colors.nutrition }]}>
+                  <Salad size={22} color={Colors.white} strokeWidth={2.2} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.nutritionCardTitle}>{t('dashboard.todaysNutrition')}</Text>
+                  <Text style={styles.nutritionCardSub}>
+                    {hasMealsToday ? `${todayMeals.length} ${todayMeals.length === 1 ? 'meal' : 'meals'} logged` : 'No meals yet'}
+                  </Text>
+                </View>
                 <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
                   <ChevronDown size={20} color={Colors.textTertiary} />
                 </Animated.View>
-              </TouchableOpacity>
+              </View>
 
               {nutritionExpanded && (
                 <View style={styles.nutritionExpanded} testID="nutrition-summary">
@@ -818,20 +739,23 @@ export default function DashboardScreen() {
                   )}
                 </View>
               )}
-            </View>
+            </TouchableOpacity>
 
-            <View style={styles.dualCardRow}>
-              <TouchableOpacity
-                style={styles.stepCardCompact}
-                activeOpacity={0.7}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  router.push('/steps-history' as any);
-                }}
-                testID="steps-card"
-              >
-                <View style={styles.compactCardHeader}>
-                  <Text style={styles.compactCardEmoji}>{"\uD83D\uDC5F"}</Text>
+            <TouchableOpacity
+              style={styles.statCard}
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push('/steps-history' as any);
+              }}
+              testID="steps-card"
+            >
+              <View style={[styles.iconTile, { backgroundColor: Colors.physicalActivity }]}>
+                <Footprints size={22} color={Colors.white} strokeWidth={2.2} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={styles.statHeaderRow}>
+                  <Text style={styles.statTitle}>{t('dashboard.stepsCount')}</Text>
                   {stepsPermissionStatus !== 'loading' && Platform.OS !== 'web' && (
                     <TouchableOpacity
                       onPress={(e) => {
@@ -847,88 +771,76 @@ export default function DashboardScreen() {
                     </TouchableOpacity>
                   )}
                 </View>
-                <Text style={styles.compactCardValue}>{dailySteps.toLocaleString()}</Text>
-                <Text style={styles.compactCardLabel}>/ {stepGoal.toLocaleString()} {t('dashboard.stepsCount')}</Text>
-
+                <Text style={styles.statSub}>
+                  {dailySteps.toLocaleString()} / {stepGoal.toLocaleString()}
+                </Text>
                 {stepsPermissionStatus === 'loading' ? (
-                  <Text style={styles.compactCardHint}>{t('dashboard.checking')}</Text>
+                  <Text style={styles.statFootText}>{t('dashboard.checking')}</Text>
                 ) : (
                   <>
-                    <View style={styles.compactBarBg}>
-                      <Animated.View style={[styles.compactBarFill, { width: stepProgress }]} />
+                    <View style={styles.slimBarBg}>
+                      <Animated.View style={[styles.slimBarFill, { width: stepProgress, backgroundColor: Colors.physicalActivity }]} />
                       {yesterdaySteps > 0 && (
                         <View
                           style={[
-                            styles.compactYesterdayMarker,
+                            styles.slimYdayMarker,
                             { left: `${Math.min((yesterdaySteps / stepGoal) * 100, 100)}%` },
                           ]}
-                        >
-                          <View style={styles.compactYesterdayLine} />
-                        </View>
+                        />
                       )}
                     </View>
-                    <View style={styles.compactStepFooter}>
-                      <Text style={styles.compactPercent}>{Math.round((dailySteps / stepGoal) * 100)}%</Text>
-                      {yesterdaySteps > 0 && (
-                        <Text style={styles.compactYesterdayLabel}>{t('dashboard.yday')}</Text>
-                      )}
+                    <View style={styles.statFooterRow}>
+                      <Flame size={13} color={Colors.physicalActivity} fill={dailySteps > 0 ? Colors.physicalActivity : 'transparent'} />
+                      <Text style={[styles.statFootText, { color: Colors.physicalActivity }]}>
+                        {(() => {
+                          if (dailySteps === 0 && yesterdaySteps === 0) return `${Math.round((dailySteps / stepGoal) * 100)}%`;
+                          if (yesterdaySteps === 0) return t('dashboard.startWalking');
+                          if (dailySteps >= yesterdaySteps) return t('dashboard.beatYesterday');
+                          return t('dashboard.keepGoing', { steps: yesterdaySteps.toLocaleString() });
+                        })()}
+                      </Text>
                     </View>
-                    {(() => {
-                      if (dailySteps === 0 && yesterdaySteps === 0) return null;
-                      if (yesterdaySteps === 0) {
-                        return (
-                          <Text style={styles.compactContextMsg} numberOfLines={2}>
-                            {t('dashboard.startWalking')}
-                          </Text>
-                        );
-                      }
-                      if (dailySteps >= yesterdaySteps) {
-                        return (
-                          <Text style={styles.compactContextMsg} numberOfLines={2}>
-                            {t('dashboard.beatYesterday')}
-                          </Text>
-                        );
-                      }
-                      return (
-                        <Text style={styles.compactContextMsg} numberOfLines={2}>
-                          {t('dashboard.keepGoing', { steps: yesterdaySteps.toLocaleString() })}
-                        </Text>
-                      );
-                    })()}
                   </>
                 )}
-              </TouchableOpacity>
+              </View>
+              <ChevronRight size={20} color={Colors.textTertiary} />
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.caloriesCardCompact}
-                activeOpacity={0.7}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  router.push('/activity-history' as any);
-                }}
-                testID="calories-card"
-              >
-                <View style={styles.compactCardHeader}>
-                  <Text style={styles.compactCardEmoji}>{"\uD83D\uDD25"}</Text>
-                  <ChevronRight size={14} color={Colors.textTertiary} />
+            <TouchableOpacity
+              style={styles.statCard}
+              activeOpacity={0.7}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push('/activity-history' as any);
+              }}
+              testID="calories-card"
+            >
+              <View style={[styles.iconTile, { backgroundColor: '#FF7A3D' }]}>
+                <Flame size={22} color={Colors.white} strokeWidth={2.2} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.statTitle}>{t('dashboard.caloriesBurnt2')}</Text>
+                <Text style={styles.statSub}>{totalCaloriesBurnt.toLocaleString()} {t('dashboard.kcal')}</Text>
+                <View style={styles.slimBarBg}>
+                  <View style={[styles.slimBarFill, {
+                    width: totalCaloriesBurnt > 0 ? `${Math.min(100, (stepsCalories / Math.max(totalCaloriesBurnt, 1)) * 100)}%` as any : '0%',
+                    backgroundColor: Colors.physicalActivity,
+                  }]} />
+                  <View style={[styles.slimBarFillOverlay, {
+                    left: totalCaloriesBurnt > 0 ? `${Math.min(100, (stepsCalories / Math.max(totalCaloriesBurnt, 1)) * 100)}%` as any : '0%',
+                    width: totalCaloriesBurnt > 0 ? `${Math.min(100, (activityCalories / Math.max(totalCaloriesBurnt, 1)) * 100)}%` as any : '0%',
+                    backgroundColor: '#7E57C2',
+                  }]} />
                 </View>
-                <Text style={styles.caloriesCardValue}>{totalCaloriesBurnt.toLocaleString()}</Text>
-                <Text style={styles.compactCardLabel}>{t('dashboard.caloriesBurnt2')}</Text>
-                <View style={styles.caloriesBreakdown}>
-                  <View style={styles.caloriesBreakdownRow}>
-                    <View style={[styles.caloriesDot, { backgroundColor: Colors.physicalActivity }]} />
-                    <Text style={styles.caloriesBreakdownText}>{t('dashboard.stepsBreakdown')}: {stepsCalories}</Text>
-                  </View>
-                  <View style={styles.caloriesBreakdownRow}>
-                    <View style={[styles.caloriesDot, { backgroundColor: '#7E57C2' }]} />
-                    <Text style={styles.caloriesBreakdownText}>{t('dashboard.activityBreakdown')}: {activityCalories}</Text>
-                  </View>
+                <View style={styles.statFooterRow}>
+                  <View style={[styles.dotMini, { backgroundColor: Colors.physicalActivity }]} />
+                  <Text style={styles.statFootText}>{t('dashboard.stepsBreakdown')} {stepsCalories}</Text>
+                  <View style={[styles.dotMini, { backgroundColor: '#7E57C2', marginLeft: 8 }]} />
+                  <Text style={styles.statFootText}>{t('dashboard.activityBreakdown')} {activityCalories}</Text>
                 </View>
-                <View style={styles.caloriesBadge}>
-                  <Text style={styles.caloriesBadgeText}>{t('dashboard.stepsPlusActivity')}</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
+              </View>
+              <ChevronRight size={20} color={Colors.textTertiary} />
+            </TouchableOpacity>
 
             <View style={styles.todayPointsCard}>
               <View style={styles.todayPointsRow}>
@@ -1048,28 +960,80 @@ const styles = StyleSheet.create({
   pointsText: { fontSize: 16, fontWeight: '700' as const, color: Colors.physicalActivity },
 
   nutritionCard: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.white,
     borderRadius: 18,
-    padding: 18,
-    marginBottom: 14,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    borderColor: '#F1F3F6',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
   },
   nutritionCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 14,
   },
-  nutritionCardEmoji: {
-    fontSize: 22,
+  iconTile: {
+    width: 44, height: 44, borderRadius: 14,
+    alignItems: 'center' as const, justifyContent: 'center' as const,
+    borderWidth: 2, borderColor: Colors.white,
   },
   nutritionCardTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700' as const,
     color: Colors.text,
     letterSpacing: -0.3,
-    flex: 1,
   },
+  nutritionCardSub: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  statCard: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 14,
+    backgroundColor: Colors.white,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#F1F3F6',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  statHeaderRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+  },
+  statTitle: { fontSize: 16, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.2 },
+  statSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2, marginBottom: 8 },
+  slimBarBg: {
+    height: 6, backgroundColor: Colors.inputBg, borderRadius: 3,
+    overflow: 'hidden' as const, position: 'relative' as const,
+  },
+  slimBarFill: { height: 6, borderRadius: 3, maxWidth: '100%' },
+  slimBarFillOverlay: {
+    position: 'absolute' as const, top: 0, height: 6, borderRadius: 3,
+  },
+  slimYdayMarker: {
+    position: 'absolute' as const, top: -2, width: 2, height: 10,
+    backgroundColor: Colors.textTertiary, borderRadius: 1, transform: [{ translateX: -1 }],
+  },
+  statFooterRow: {
+    flexDirection: 'row' as const, alignItems: 'center' as const,
+    gap: 6, marginTop: 8,
+  },
+  statFootText: { fontSize: 12, fontWeight: '600' as const, color: Colors.textTertiary, flexShrink: 1 },
+  dotMini: { width: 6, height: 6, borderRadius: 3 },
   nutritionExpanded: {
     marginTop: 12,
   },

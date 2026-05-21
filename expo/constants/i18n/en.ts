@@ -105,6 +105,14 @@ const en = {
       eveningMeditation: 'Evening meditation',
     },
     coachTip: 'Coach Tip',
+    calorieMsg: {
+      start: "Let's start fueling your day 🌱",
+      early: 'Nice start — keep it balanced 💪',
+      mid: "You're on track today ⚡",
+      almost: 'Almost at your goal 🔥',
+      hit: 'Daily goal hit 🏆',
+      over: 'Over your goal — lighter next meal 🍃',
+    },
     coachTips: {
       default: 'Small steps add up. Stay consistent today and your weekly stats will thank you.',
       lowSteps: 'Your step count is a bit low. Try a 10-minute walk after your next meal to get moving.',
