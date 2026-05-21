@@ -88,6 +88,7 @@ const en = {
     stepsPlusActivity: 'Steps + Activity',
     caloriesBurnt2: 'calories burnt',
     pointsEarnedToday: 'Points earned today',
+    keepItUp: 'Keep it up!',
     pillars: {
       nutrition: 'Nutrition',
       activity: 'Activity',

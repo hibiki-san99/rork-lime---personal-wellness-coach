@@ -90,6 +90,7 @@ const id: TranslationKeys = {
     stepsPlusActivity: 'Langkah + Aktivitas',
     caloriesBurnt2: 'kalori terbakar',
     pointsEarnedToday: 'Poin diperoleh hari ini',
+    keepItUp: 'Terus semangat!',
     pillars: {
       nutrition: 'Nutrisi',
       activity: 'Aktivitas',

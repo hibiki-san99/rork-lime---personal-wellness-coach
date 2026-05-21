@@ -679,10 +679,12 @@ export default function DashboardScreen() {
               <View style={styles.headerInfo}>
                 <Text style={styles.greeting}>{greeting + ','}</Text>
                 <Text style={styles.userName}>{profile?.name ?? t('common.user')}</Text>
-                <Text style={styles.teamBadge}>{profile?.teamName}</Text>
+                {profile?.teamName ? <Text style={styles.teamBadge}>{profile.teamName}</Text> : null}
               </View>
               <View style={styles.pointsBadge}>
-                <Flame size={16} color={Colors.physicalActivity} />
+                <View style={styles.pointsIconTile}>
+                  <Flame size={14} color={Colors.white} strokeWidth={2.5} fill={Colors.white} />
+                </View>
                 <Text style={styles.pointsText}>{totalPoints}</Text>
               </View>
             </View>
@@ -843,9 +845,12 @@ export default function DashboardScreen() {
             </TouchableOpacity>
 
             <View style={styles.todayPointsCard}>
-              <View style={styles.todayPointsRow}>
-                <Star size={18} color={Colors.warning} />
+              <View style={[styles.iconTile, { backgroundColor: Colors.mood }]}>
+                <Star size={22} color={Colors.white} strokeWidth={2.2} fill={Colors.white} />
+              </View>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.todayPointsLabel}>{t('dashboard.pointsEarnedToday')}</Text>
+                <Text style={styles.todayPointsSub}>{t('dashboard.keepItUp')}</Text>
               </View>
               <Text style={styles.todayPointsValue}>{todayPoints}</Text>
             </View>
@@ -945,19 +950,30 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingBottom: 90, paddingTop: 8 },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   avatarCircle: {
-    width: 52, height: 52, borderRadius: 26, backgroundColor: Colors.socialConnection,
+    width: 52, height: 52, borderRadius: 26, backgroundColor: Colors.primary,
     alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: Colors.white,
+    shadowColor: Colors.primaryDark, shadowOpacity: 0.25, shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }, elevation: 3,
   },
-  avatarText: { fontSize: 18, fontWeight: '700' as const, color: Colors.white },
+  avatarText: { fontSize: 18, fontWeight: '800' as const, color: Colors.white, letterSpacing: -0.3 },
   headerInfo: { flex: 1, marginLeft: 14 },
-  greeting: { fontSize: 13, color: Colors.textSecondary },
-  userName: { fontSize: 20, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.3 },
-  teamBadge: { fontSize: 12, color: Colors.socialConnection, fontWeight: '600' as const, marginTop: 2 },
+  greeting: { fontSize: 13, color: Colors.textSecondary, fontWeight: '500' as const },
+  userName: { fontSize: 22, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.4, marginTop: 1 },
+  teamBadge: { fontSize: 12, color: Colors.primaryDark, fontWeight: '700' as const, marginTop: 2 },
   pointsBadge: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.physicalActivityLight,
-    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, gap: 4,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white,
+    paddingLeft: 4, paddingRight: 12, paddingVertical: 4, borderRadius: 22, gap: 8,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOpacity: 0.06, shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }, elevation: 2,
   },
-  pointsText: { fontSize: 16, fontWeight: '700' as const, color: Colors.physicalActivity },
+  pointsIconTile: {
+    width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.primary,
+    alignItems: 'center' as const, justifyContent: 'center' as const,
+    borderWidth: 2, borderColor: Colors.white,
+  },
+  pointsText: { fontSize: 15, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.3 },
 
   nutritionCard: {
     backgroundColor: Colors.white,
@@ -1199,13 +1215,24 @@ const styles = StyleSheet.create({
     color: '#BF360C',
   },
   todayPointsCard: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#FFF8E1', borderRadius: 14, padding: 16, marginBottom: 24,
-    borderWidth: 1, borderColor: '#FFE082',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 14,
+    backgroundColor: Colors.white,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#F1F3F6',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
   },
-  todayPointsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  todayPointsLabel: { fontSize: 14, fontWeight: '600' as const, color: '#E65100' },
-  todayPointsValue: { fontSize: 24, fontWeight: '800' as const, color: '#E65100' },
+  todayPointsLabel: { fontSize: 16, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.2 },
+  todayPointsSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2, fontWeight: '500' as const },
+  todayPointsValue: { fontSize: 28, fontWeight: '800' as const, color: Colors.mood, letterSpacing: -0.6 },
   sectionTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text, marginBottom: 14, letterSpacing: -0.3 },
   actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
   actionCard: {
