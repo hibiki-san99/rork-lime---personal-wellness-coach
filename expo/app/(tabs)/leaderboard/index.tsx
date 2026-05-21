@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Trophy, Medal, Crown, Users, User as UserIcon } from 'lucide-react-native';
+import { Trophy, Medal, Crown, Users, User as UserIcon, Flame } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import Colors from '@/constants/colors';
 import { useUser } from '@/context/UserContext';
@@ -86,15 +86,35 @@ export default function LeaderboardScreen() {
     return teamStandings.find(t => t.name === profile.teamName) ?? null;
   }, [teamStandings, profile?.teamName]);
 
+  const topPoints = useMemo(() => {
+    if (viewMode === 'teams') return teamStandings[0]?.totalPoints ?? 0;
+    return sortedIndividuals[0]?.totalPoints ?? 0;
+  }, [viewMode, teamStandings, sortedIndividuals]);
+
+  const motivation = useMemo(() => {
+    if (myRank === null) return 'Log activities to enter the ranking 🌱';
+    if (myRank === 1) return "You're #1! Keep that crown 👑";
+    if (myRank <= 3) return 'Podium position. Push for the top 🔥';
+    if (myRank <= 10) return 'Top 10 — keep stacking points 💪';
+    return 'Every action moves you up the board ⚡';
+  }, [myRank]);
+
   const onRefresh = useCallback(() => {
     void leaderboardQuery.refetch();
   }, [leaderboardQuery]);
 
   const getRankIcon = (rank: number) => {
-    if (rank === 0) return <Crown size={18} color="#FFD700" />;
-    if (rank === 1) return <Medal size={18} color="#C0C0C0" />;
-    if (rank === 2) return <Medal size={18} color="#CD7F32" />;
+    if (rank === 0) return <Crown size={16} color={Colors.white} fill={Colors.white} />;
+    if (rank === 1) return <Medal size={16} color={Colors.white} />;
+    if (rank === 2) return <Medal size={16} color={Colors.white} />;
     return null;
+  };
+
+  const rankTileColor = (rank: number): string => {
+    if (rank === 0) return Colors.mood;
+    if (rank === 1) return '#94A3B8';
+    if (rank === 2) return '#CD7F32';
+    return Colors.primary;
   };
 
   const getInitials = (name: string) =>
@@ -111,32 +131,29 @@ export default function LeaderboardScreen() {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={leaderboardQuery.isRefetching} onRefresh={onRefresh} />}
         >
-          <View style={styles.headerSection}>
-            <Trophy size={28} color={Colors.socialConnection} />
-            <Text style={styles.headerTitle}>Live Leaderboard</Text>
-            <Text style={styles.headerSub}>
-              {participants.length} participant{participants.length === 1 ? '' : 's'} • updated live
-            </Text>
+          <Text style={styles.pageTitle}>Leaderboard</Text>
+          <Text style={styles.pageSub}>
+            {participants.length} participant{participants.length === 1 ? '' : 's'} · updated live
+          </Text>
+
+          {/* Hero card */}
+          <View style={styles.heroCard}>
+            <Text style={styles.heroLabel}>Your Rank</Text>
+            <View style={styles.heroRow}>
+              <Text style={styles.heroBig}>
+                {myRank ? `#${myRank}` : '—'}
+              </Text>
+              <Text style={styles.heroPct}>{totalPoints.toLocaleString()}</Text>
+            </View>
+            <View style={styles.heroBarBg}>
+              <View style={[styles.heroBarFill, {
+                width: topPoints > 0 ? `${Math.min(100, (totalPoints / topPoints) * 100)}%` as any : '0%',
+              }]} />
+            </View>
+            <Text style={styles.heroMsg}>{motivation}</Text>
           </View>
 
-          {profile && (
-            <View style={styles.youCard}>
-              <View style={styles.youAvatar}>
-                <Text style={styles.youAvatarText}>{getInitials(profile.name || 'You')}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.youLabel}>Your rank</Text>
-                <Text style={styles.youName}>
-                  {profile.name}{profile.teamName ? ` • ${profile.teamName}` : ''}
-                </Text>
-              </View>
-              <View style={styles.youStats}>
-                <Text style={styles.youRank}>{myRank ? `#${myRank}` : '—'}</Text>
-                <Text style={styles.youPoints}>{totalPoints.toLocaleString()} pts</Text>
-              </View>
-            </View>
-          )}
-
+          {/* Segment */}
           <View style={styles.segment} testID="leaderboard-segment">
             <TouchableOpacity
               style={[styles.segmentBtn, viewMode === 'teams' && styles.segmentBtnActive]}
@@ -158,7 +175,7 @@ export default function LeaderboardScreen() {
 
           {isLoading ? (
             <View style={styles.loadingBox}>
-              <ActivityIndicator size="large" color={Colors.socialConnection} />
+              <ActivityIndicator size="large" color={Colors.primary} />
               <Text style={styles.loadingText}>Loading leaderboard...</Text>
             </View>
           ) : isError ? (
@@ -175,29 +192,35 @@ export default function LeaderboardScreen() {
               ) : (
                 teamStandings.map((team, idx) => {
                   const isUserTeam = team.name === profile?.teamName;
+                  const pct = topPoints > 0 ? Math.min(100, (team.totalPoints / topPoints) * 100) : 0;
+                  const tileColor = rankTileColor(idx);
                   return (
                     <View
                       key={team.name}
-                      style={[styles.teamCard, isUserTeam && styles.teamCardHighlight]}
+                      style={[styles.rowCard, isUserTeam && styles.rowCardHighlight]}
                     >
-                      <View style={styles.teamRank}>
+                      <View style={[styles.rankTile, { backgroundColor: tileColor, shadowColor: tileColor }]}>
                         {getRankIcon(idx) || (
-                          <Text style={[styles.teamRankNum, idx === 0 && styles.teamRankFirst]}>
-                            {idx + 1}
-                          </Text>
+                          <Text style={styles.rankTileNum}>{idx + 1}</Text>
                         )}
                       </View>
-                      <View style={styles.teamInfo}>
-                        <Text style={[styles.teamName, isUserTeam && styles.teamNameHighlight]}>
-                          {team.name} {isUserTeam ? '(You)' : ''}
+                      <View style={styles.rowBody}>
+                        <Text style={[styles.rowName, isUserTeam && styles.rowNameHighlight]}>
+                          {team.name}{isUserTeam ? ' (You)' : ''}
                         </Text>
-                        <Text style={styles.teamMembers}>{team.members.length} member{team.members.length === 1 ? '' : 's'}</Text>
+                        <Text style={styles.rowSub}>
+                          {team.members.length} member{team.members.length === 1 ? '' : 's'}
+                        </Text>
+                        <View style={styles.slimBarBg}>
+                          <View style={[styles.slimBarFill, {
+                            width: `${pct}%` as any,
+                            backgroundColor: tileColor,
+                          }]} />
+                        </View>
                       </View>
-                      <View style={styles.teamPoints}>
-                        <Text style={[styles.teamPointsNum, isUserTeam && styles.teamPointsHighlight]}>
-                          {team.totalPoints.toLocaleString()}
-                        </Text>
-                        <Text style={styles.teamPointsLabel}>pts</Text>
+                      <View style={styles.rowRight}>
+                        <Text style={styles.rowPoints}>{team.totalPoints.toLocaleString()}</Text>
+                        <Text style={styles.rowPointsLabel}>pts</Text>
                       </View>
                     </View>
                   );
@@ -206,37 +229,42 @@ export default function LeaderboardScreen() {
 
               {userTeam && (
                 <>
-                  <Text style={[styles.sectionTitle, { marginTop: 28 }]}>
+                  <Text style={[styles.sectionTitle, { marginTop: 26 }]}>
                     Your Team — {userTeam.name}
                   </Text>
                   {userTeam.members.map((member, idx) => {
                     const isUser = member.isSelf;
+                    const memberTop = userTeam.members[0]?.totalPoints ?? 0;
+                    const pct = memberTop > 0 ? Math.min(100, (member.totalPoints / memberTop) * 100) : 0;
+                    const tileColor = rankTileColor(idx);
                     return (
                       <View
                         key={member.id}
-                        style={[styles.memberRow, isUser && styles.memberRowHighlight]}
+                        style={[styles.rowCard, isUser && styles.rowCardHighlight]}
                       >
-                        <View style={styles.memberRank}>
+                        <View style={[styles.rankTile, { backgroundColor: tileColor, shadowColor: tileColor }]}>
                           {getRankIcon(idx) || (
-                            <Text style={styles.memberRankNum}>{idx + 1}</Text>
+                            <Text style={styles.rankTileNum}>{idx + 1}</Text>
                           )}
                         </View>
-                        <View style={[styles.memberAvatar, isUser && styles.memberAvatarUser]}>
-                          <Text style={[styles.memberAvatarText, isUser && styles.memberAvatarTextUser]}>
-                            {getInitials(member.name)}
+                        <View style={styles.rowBody}>
+                          <Text style={[styles.rowName, isUser && styles.rowNameHighlight]}>
+                            {member.name}{isUser ? ' (You)' : ''}
                           </Text>
+                          <Text style={styles.rowSub} numberOfLines={1}>
+                            {member.mealsLogged} meals · {member.activitiesLogged} activities
+                          </Text>
+                          <View style={styles.slimBarBg}>
+                            <View style={[styles.slimBarFill, {
+                              width: `${pct}%` as any,
+                              backgroundColor: tileColor,
+                            }]} />
+                          </View>
                         </View>
-                        <View style={styles.memberInfo}>
-                          <Text style={[styles.memberName, isUser && styles.memberNameUser]}>
-                            {member.name} {isUser ? '(You)' : ''}
-                          </Text>
-                          <Text style={styles.memberSub}>
-                            {member.mealsLogged} meals • {member.activitiesLogged} activities • {member.sleepLogged} sleep
-                          </Text>
+                        <View style={styles.rowRight}>
+                          <Text style={styles.rowPoints}>{member.totalPoints.toLocaleString()}</Text>
+                          <Text style={styles.rowPointsLabel}>pts</Text>
                         </View>
-                        <Text style={[styles.memberPoints, isUser && styles.memberPointsUser]}>
-                          {member.totalPoints}
-                        </Text>
                       </View>
                     );
                   })}
@@ -249,34 +277,48 @@ export default function LeaderboardScreen() {
               {sortedIndividuals.length === 0 ? (
                 <Text style={styles.emptyText}>No participants yet.</Text>
               ) : (
-                sortedIndividuals.map((p, idx) => (
-                  <View
-                    key={p.id}
-                    style={[styles.memberRow, p.isSelf && styles.memberRowHighlight]}
-                  >
-                    <View style={styles.memberRank}>
-                      {getRankIcon(idx) || (
-                        <Text style={styles.memberRankNum}>{idx + 1}</Text>
-                      )}
+                sortedIndividuals.map((p, idx) => {
+                  const pct = topPoints > 0 ? Math.min(100, (p.totalPoints / topPoints) * 100) : 0;
+                  const tileColor = rankTileColor(idx);
+                  return (
+                    <View
+                      key={p.id}
+                      style={[styles.rowCard, p.isSelf && styles.rowCardHighlight]}
+                    >
+                      <View style={[styles.rankTile, { backgroundColor: tileColor, shadowColor: tileColor }]}>
+                        {getRankIcon(idx) || (
+                          <Text style={styles.rankTileNum}>{idx + 1}</Text>
+                        )}
+                      </View>
+                      <View style={styles.rowBody}>
+                        <View style={styles.nameRow}>
+                          <View style={styles.avatar}>
+                            <Text style={styles.avatarText}>{getInitials(p.name)}</Text>
+                          </View>
+                          <Text style={[styles.rowName, p.isSelf && styles.rowNameHighlight]} numberOfLines={1}>
+                            {p.name}{p.isSelf ? ' (You)' : ''}
+                          </Text>
+                        </View>
+                        <Text style={styles.rowSub} numberOfLines={1}>
+                          {p.teamName ?? 'No team'} · {p.badgesEarned} badges
+                        </Text>
+                        <View style={styles.slimBarBg}>
+                          <View style={[styles.slimBarFill, {
+                            width: `${pct}%` as any,
+                            backgroundColor: tileColor,
+                          }]} />
+                        </View>
+                      </View>
+                      <View style={styles.rowRight}>
+                        <View style={styles.flameRow}>
+                          <Flame size={12} color="#F97316" fill="#F97316" />
+                          <Text style={styles.rowPoints}>{p.totalPoints.toLocaleString()}</Text>
+                        </View>
+                        <Text style={styles.rowPointsLabel}>pts</Text>
+                      </View>
                     </View>
-                    <View style={[styles.memberAvatar, p.isSelf && styles.memberAvatarUser]}>
-                      <Text style={[styles.memberAvatarText, p.isSelf && styles.memberAvatarTextUser]}>
-                        {getInitials(p.name)}
-                      </Text>
-                    </View>
-                    <View style={styles.memberInfo}>
-                      <Text style={[styles.memberName, p.isSelf && styles.memberNameUser]}>
-                        {p.name} {p.isSelf ? '(You)' : ''}
-                      </Text>
-                      <Text style={styles.memberSub}>
-                        {p.teamName ?? 'No team'} • 🏅 {p.badgesEarned}
-                      </Text>
-                    </View>
-                    <Text style={[styles.memberPoints, p.isSelf && styles.memberPointsUser]}>
-                      {p.totalPoints}
-                    </Text>
-                  </View>
-                ))
+                  );
+                })
               )}
             </>
           )}
@@ -287,92 +329,93 @@ export default function LeaderboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#E8F5F3' },
+  container: { flex: 1, backgroundColor: Colors.background },
   safe: { flex: 1 },
-  scroll: { padding: 20, paddingBottom: 30 },
-  headerSection: { alignItems: 'center', marginBottom: 20, paddingTop: 8 },
-  headerTitle: {
-    fontSize: 26, fontWeight: '800' as const, color: Colors.text, marginTop: 10, letterSpacing: -0.5,
+  scroll: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 4 },
+
+  pageTitle: { fontSize: 32, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.8 },
+  pageSub: { fontSize: 14, color: Colors.textSecondary, marginTop: 4, marginBottom: 20 },
+
+  // Hero (matches missions/insights green hero card)
+  heroCard: {
+    borderRadius: 22, padding: 20, marginBottom: 18,
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary, shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
+    overflow: 'hidden' as const,
   },
-  headerSub: { fontSize: 13, color: Colors.textSecondary, marginTop: 4 },
-  youCard: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.socialConnection, borderRadius: 16, padding: 16,
-    marginBottom: 18,
+  heroLabel: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, opacity: 0.9 },
+  heroRow: { flexDirection: 'row' as const, alignItems: 'flex-end' as const, justifyContent: 'space-between' as const, marginTop: 4 },
+  heroBig: { color: Colors.white, fontSize: 38, fontWeight: '800' as const, letterSpacing: -1 },
+  heroPct: { color: Colors.white, fontSize: 26, fontWeight: '800' as const, opacity: 0.55, letterSpacing: -0.6 },
+  heroBarBg: {
+    height: 8, backgroundColor: 'rgba(255,255,255,0.28)', borderRadius: 4, overflow: 'hidden' as const,
+    marginTop: 12,
   },
-  youAvatar: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.25)',
-    alignItems: 'center', justifyContent: 'center', marginRight: 12,
-  },
-  youAvatarText: { fontSize: 15, fontWeight: '700' as const, color: Colors.white },
-  youLabel: { fontSize: 11, color: 'rgba(255,255,255,0.75)', letterSpacing: 0.5, textTransform: 'uppercase' as const },
-  youName: { fontSize: 15, fontWeight: '700' as const, color: Colors.white, marginTop: 2 },
-  youStats: { alignItems: 'flex-end' },
-  youRank: { fontSize: 22, fontWeight: '800' as const, color: Colors.white },
-  youPoints: { fontSize: 11, color: 'rgba(255,255,255,0.85)', fontWeight: '600' as const },
+  heroBarFill: { height: 8, backgroundColor: Colors.white, borderRadius: 4 },
+  heroMsg: { color: Colors.white, fontSize: 13, fontWeight: '600' as const, marginTop: 12, opacity: 0.95 },
+
   segment: {
-    flexDirection: 'row', backgroundColor: Colors.card, borderRadius: 12,
-    padding: 4, marginBottom: 16, borderWidth: 1, borderColor: Colors.cardBorder,
+    flexDirection: 'row' as const, backgroundColor: Colors.card, borderRadius: 14,
+    padding: 4, marginBottom: 18, borderWidth: 1, borderColor: Colors.cardBorder,
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
   },
   segmentBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: 10, borderRadius: 9,
+    flex: 1, flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'center' as const,
+    gap: 6, paddingVertical: 11, borderRadius: 10,
   },
-  segmentBtnActive: { backgroundColor: Colors.socialConnection },
+  segmentBtnActive: { backgroundColor: Colors.primary },
   segmentText: { fontSize: 13, fontWeight: '600' as const, color: Colors.textSecondary },
   segmentTextActive: { color: Colors.white },
-  loadingBox: { alignItems: 'center', paddingVertical: 40, gap: 12 },
+
+  loadingBox: { alignItems: 'center' as const, paddingVertical: 40, gap: 12 },
   loadingText: { fontSize: 13, color: Colors.textSecondary },
-  errorBox: { alignItems: 'center', paddingVertical: 40, gap: 8 },
+  errorBox: { alignItems: 'center' as const, paddingVertical: 40, gap: 8 },
   errorEmoji: { fontSize: 36 },
   errorTitle: { fontSize: 15, fontWeight: '700' as const, color: Colors.text },
   errorSub: { fontSize: 13, color: Colors.textSecondary },
   emptyText: {
-    fontSize: 13, color: Colors.textSecondary, textAlign: 'center',
+    fontSize: 13, color: Colors.textSecondary, textAlign: 'center' as const,
     fontStyle: 'italic' as const, paddingVertical: 20,
   },
-  sectionTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text, marginBottom: 12 },
-  teamCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.card,
-    borderRadius: 14, padding: 16, marginBottom: 10,
-    borderWidth: 1, borderColor: Colors.cardBorder,
+
+  sectionTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text, marginBottom: 14, letterSpacing: -0.3 },
+
+  // Row card (white 3D card, deep colored rank tile, slim progress bar)
+  rowCard: {
+    flexDirection: 'row' as const, alignItems: 'center' as const, gap: 14,
+    backgroundColor: Colors.white, borderRadius: 18, padding: 14, marginBottom: 10,
+    borderWidth: 1, borderColor: '#F1F3F6',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
   },
-  teamCardHighlight: {
-    borderColor: Colors.socialConnection, backgroundColor: Colors.socialConnectionLight,
+  rowCardHighlight: {
+    borderColor: Colors.primary, borderWidth: 2,
+    shadowColor: Colors.primary, shadowOpacity: 0.18, shadowRadius: 14,
   },
-  teamRank: {
-    width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.inputBg,
-    alignItems: 'center', justifyContent: 'center', marginRight: 12,
+  rankTile: {
+    width: 44, height: 44, borderRadius: 14,
+    alignItems: 'center' as const, justifyContent: 'center' as const,
+    borderWidth: 2, borderColor: Colors.white,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 3,
   },
-  teamRankNum: { fontSize: 16, fontWeight: '700' as const, color: Colors.textSecondary },
-  teamRankFirst: { color: Colors.socialConnection },
-  teamInfo: { flex: 1 },
-  teamName: { fontSize: 15, fontWeight: '600' as const, color: Colors.text },
-  teamNameHighlight: { color: Colors.socialConnection },
-  teamMembers: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-  teamPoints: { alignItems: 'flex-end' },
-  teamPointsNum: { fontSize: 18, fontWeight: '800' as const, color: Colors.text },
-  teamPointsHighlight: { color: Colors.socialConnection },
-  teamPointsLabel: { fontSize: 11, color: Colors.textSecondary },
-  memberRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.card,
-    borderRadius: 12, padding: 14, marginBottom: 8,
-    borderWidth: 1, borderColor: Colors.cardBorder,
+  rankTileNum: { fontSize: 16, fontWeight: '800' as const, color: Colors.white },
+  rowBody: { flex: 1, minWidth: 0 },
+  nameRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
+  avatar: {
+    width: 22, height: 22, borderRadius: 11,
+    backgroundColor: Colors.primaryLight, alignItems: 'center' as const, justifyContent: 'center' as const,
   },
-  memberRowHighlight: { borderColor: Colors.socialConnection, backgroundColor: Colors.socialConnectionLight },
-  memberRank: { width: 28, alignItems: 'center', marginRight: 10 },
-  memberRankNum: { fontSize: 14, fontWeight: '600' as const, color: Colors.textSecondary },
-  memberAvatar: {
-    width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.inputBg,
-    alignItems: 'center', justifyContent: 'center', marginRight: 12,
+  avatarText: { fontSize: 9, fontWeight: '800' as const, color: Colors.primaryDark },
+  rowName: { fontSize: 15, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.2, flexShrink: 1 },
+  rowNameHighlight: { color: Colors.primaryDark },
+  rowSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 3, fontWeight: '500' as const },
+  slimBarBg: {
+    height: 5, backgroundColor: '#EEF1F5', borderRadius: 3, overflow: 'hidden' as const, marginTop: 8,
   },
-  memberAvatarUser: { backgroundColor: Colors.socialConnection },
-  memberAvatarText: { fontSize: 13, fontWeight: '600' as const, color: Colors.textSecondary },
-  memberAvatarTextUser: { color: Colors.white },
-  memberInfo: { flex: 1 },
-  memberName: { fontSize: 14, fontWeight: '500' as const, color: Colors.text },
-  memberNameUser: { fontWeight: '700' as const, color: Colors.socialConnection },
-  memberSub: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
-  memberPoints: { fontSize: 16, fontWeight: '700' as const, color: Colors.text },
-  memberPointsUser: { color: Colors.socialConnection },
+  slimBarFill: { height: 5, borderRadius: 3 },
+
+  rowRight: { alignItems: 'flex-end' as const, gap: 2 },
+  flameRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 4 },
+  rowPoints: { fontSize: 17, fontWeight: '800' as const, color: Colors.text, letterSpacing: -0.4 },
+  rowPointsLabel: { fontSize: 10, color: Colors.textTertiary, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
 });

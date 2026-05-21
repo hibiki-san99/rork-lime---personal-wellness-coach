@@ -845,8 +845,8 @@ export default function DashboardScreen() {
             </TouchableOpacity>
 
             <View style={styles.todayPointsCard}>
-              <View style={[styles.iconTile, { backgroundColor: Colors.mood }]}>
-                <Star size={22} color={Colors.white} strokeWidth={2.2} fill={Colors.white} />
+              <View style={styles.todayPointsIconTile}>
+                <Star size={22} color={Colors.mood} strokeWidth={2.2} fill={Colors.mood} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.todayPointsLabel}>{t('dashboard.pointsEarnedToday')}</Text>
@@ -1218,21 +1218,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     gap: 14,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.mood,
     borderRadius: 18,
     padding: 16,
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#F1F3F6',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 2,
+    shadowColor: Colors.mood,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 4,
   },
-  todayPointsLabel: { fontSize: 16, fontWeight: '700' as const, color: Colors.text, letterSpacing: -0.2 },
-  todayPointsSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2, fontWeight: '500' as const },
-  todayPointsValue: { fontSize: 28, fontWeight: '800' as const, color: Colors.mood, letterSpacing: -0.6 },
+  todayPointsIconTile: {
+    width: 44, height: 44, borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    alignItems: 'center' as const, justifyContent: 'center' as const,
+  },
+  todayPointsLabel: { fontSize: 16, fontWeight: '700' as const, color: Colors.white, letterSpacing: -0.2 },
+  todayPointsSub: { fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2, fontWeight: '500' as const },
+  todayPointsValue: { fontSize: 28, fontWeight: '800' as const, color: Colors.white, letterSpacing: -0.6 },
   sectionTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text, marginBottom: 14, letterSpacing: -0.3 },
   actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
   actionCard: {
