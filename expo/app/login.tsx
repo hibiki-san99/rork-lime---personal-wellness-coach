@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart, Mail, Lock, ArrowRight, KeyRound, Fingerprint } from 'lucide-react-native';
+import { Leaf, Mail, Lock, ArrowRight, KeyRound, Fingerprint } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { useAuth } from '@/context/AuthContext';
@@ -208,7 +208,7 @@ export default function LoginScreen() {
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
             <View style={styles.logoSection}>
               <View style={styles.logoCircle}>
-                <Heart size={36} color="#D84315" fill="#D84315" />
+                <Leaf size={38} color={Colors.white} fill={Colors.white} />
               </View>
               <Text style={styles.appName}>Lime</Text>
               <Text style={styles.tagline}>Small steps, bigger health</Text>
@@ -280,7 +280,7 @@ export default function LoginScreen() {
                     activeOpacity={0.7}
                     testID="biometric-login"
                   >
-                    <Fingerprint size={20} color="#D84315" />
+                    <Fingerprint size={20} color={Colors.primaryDark} />
                     <Text style={styles.biometricBtnText}>Sign in with {biometricType}</Text>
                   </TouchableOpacity>
                 )}
@@ -431,16 +431,18 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAF8F5' },
+  container: { flex: 1, backgroundColor: Colors.background },
   safe: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 28 },
   logoSection: { alignItems: 'center', marginBottom: 40 },
   logoCircle: {
-    width: 80, height: 80, borderRadius: 24, backgroundColor: '#FBE9E7',
-    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    width: 84, height: 84, borderRadius: 26, backgroundColor: Colors.primary,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35, shadowRadius: 16, elevation: 6,
   },
   appName: {
-    fontSize: 28, fontWeight: '800' as const, color: Colors.text,
+    fontSize: 30, fontWeight: '800' as const, color: Colors.text,
     letterSpacing: -0.5,
   },
   tagline: { fontSize: 14, color: Colors.textSecondary, marginTop: 4 },
@@ -454,8 +456,10 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.card,
-    borderRadius: 14, borderWidth: 1, borderColor: Colors.cardBorder,
+    borderRadius: 16, borderWidth: 1, borderColor: Colors.cardBorder,
     marginBottom: 14, overflow: 'hidden',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
   },
   inputIcon: {
     width: 48, alignItems: 'center', justifyContent: 'center',
@@ -465,30 +469,32 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   errorBanner: {
-    backgroundColor: '#FFEBEE', borderRadius: 10, padding: 12, marginBottom: 14,
+    backgroundColor: '#FDECEA', borderRadius: 12, padding: 12, marginBottom: 14,
   },
   errorText: { fontSize: 13, color: Colors.error, textAlign: 'center' },
   successBanner: {
-    backgroundColor: '#E8F5E9', borderRadius: 10, padding: 12, marginBottom: 14,
+    backgroundColor: Colors.primaryLight, borderRadius: 12, padding: 12, marginBottom: 14,
   },
-  successText: { fontSize: 13, color: Colors.nutrition, textAlign: 'center' },
+  successText: { fontSize: 13, color: Colors.primaryDark, textAlign: 'center' },
   loginBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#D84315', paddingVertical: 16, borderRadius: 14,
+    backgroundColor: Colors.primary, paddingVertical: 17, borderRadius: 100,
     gap: 8, marginTop: 8,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3, shadowRadius: 12, elevation: 4,
   },
   loginBtnDisabled: { opacity: 0.6 },
   loginBtnText: { fontSize: 16, fontWeight: '700' as const, color: Colors.white },
   forgotLink: { alignItems: 'center', marginTop: 16 },
-  forgotLinkText: { fontSize: 14, color: '#D84315', fontWeight: '600' as const },
+  forgotLinkText: { fontSize: 14, color: Colors.primaryDark, fontWeight: '600' as const },
   registerLink: { alignItems: 'center', marginTop: 16 },
   registerLinkText: { fontSize: 14, color: Colors.textSecondary },
-  registerLinkBold: { fontWeight: '700' as const, color: '#D84315' },
+  registerLinkBold: { fontWeight: '700' as const, color: Colors.primaryDark },
   biometricBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, marginTop: 16, paddingVertical: 14, borderRadius: 14,
-    backgroundColor: '#FBE9E7', borderWidth: 1, borderColor: '#FFCCBC',
+    gap: 8, marginTop: 16, paddingVertical: 14, borderRadius: 100,
+    backgroundColor: Colors.primaryLight, borderWidth: 1, borderColor: '#CFE6A8',
   },
-  biometricBtnText: { fontSize: 15, fontWeight: '600' as const, color: '#D84315' },
+  biometricBtnText: { fontSize: 15, fontWeight: '600' as const, color: Colors.primaryDark },
 
 });
