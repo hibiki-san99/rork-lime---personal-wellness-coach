@@ -313,6 +313,11 @@ const en = {
     weightInKg: 'Weight in kg',
     permissionNeeded: 'Permission Needed',
     cameraAccessRequired: 'Camera access is required to take a photo.',
+    manageAccount: 'Manage your account and settings',
+    personalInformation: 'Personal Information',
+    appSettings: 'App Settings',
+    healthGoals: 'Health Goals',
+    streak: 'Streak',
   },
   onboarding: {
     welcome: 'Welcome to Lime',

@@ -315,6 +315,11 @@ const id: TranslationKeys = {
     weightInKg: 'Berat dalam kg',
     permissionNeeded: 'Izin Diperlukan',
     cameraAccessRequired: 'Akses kamera diperlukan untuk mengambil foto.',
+    manageAccount: 'Kelola akun dan pengaturan Anda',
+    personalInformation: 'Informasi Pribadi',
+    appSettings: 'Pengaturan Aplikasi',
+    healthGoals: 'Tujuan Kesehatan',
+    streak: 'Beruntun',
   },
   onboarding: {
     welcome: 'Selamat Datang di Lime',
