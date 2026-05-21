@@ -81,13 +81,10 @@ export async function resilientFetch(
     ...fetchOptions
   } = options;
 
-  if (!skipWake) {
-    const timeSinceWake = Date.now() - lastWakeTime;
-    if (timeSinceWake > 60000) {
-      console.log('[ResilientFetch] Backend may be cold, waking first...');
-      await wakeBackend();
-    }
-  }
+  // Note: we no longer pre-wake before every request. The edge proxy rate-limits
+  // /api/health and returns 429 without CORS headers, which breaks subsequent calls
+  // from the browser. Wake only on actual network failure inside the retry loop.
+  void skipWake;
 
   let lastError: Error | null = null;
 
@@ -109,10 +106,6 @@ export async function resilientFetch(
       console.log(`[ResilientFetch] Attempt ${attempt + 1} failed: ${lastError.message}`);
 
       if (attempt < maxRetries) {
-        if (attempt === 1) {
-          console.log('[ResilientFetch] Multiple failures, trying to wake backend...');
-          await wakeBackend();
-        }
         onRetry?.(attempt + 1, maxRetries);
         const delay = retryDelayMs * (attempt + 1);
         console.log(`[ResilientFetch] Retrying in ${delay}ms...`);

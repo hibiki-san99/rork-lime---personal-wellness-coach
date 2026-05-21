@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import Colors from '@/constants/colors';
 import { useUser } from '@/context/UserContext';
 import { useAuth } from '@/context/AuthContext';
-import { resilientFetch } from '@/utils/resilientFetch';
+
 
 interface LeaderboardParticipant {
   id: string;
@@ -46,19 +46,31 @@ export default function LeaderboardScreen() {
         activeToken = await refreshToken();
       }
       if (!activeToken) throw new Error('Not signed in');
-      let res = await resilientFetch(`${baseUrl}/api/leaderboard`, {
-        headers: { 'Authorization': `Bearer ${activeToken}` },
-        maxRetries: 2,
-      });
+      const fetchOnce = async (tok: string) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 20000);
+        try {
+          return await fetch(`${baseUrl}/api/leaderboard`, {
+            headers: { 'Authorization': `Bearer ${tok}` },
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeout);
+        }
+      };
+      let res: Response;
+      try {
+        res = await fetchOnce(activeToken);
+      } catch {
+        // brief retry once for cold-start / transient failures
+        await new Promise(r => setTimeout(r, 1500));
+        res = await fetchOnce(activeToken);
+      }
       if (res.status === 401) {
         const fresh = await refreshToken();
-        if (fresh) {
-          res = await resilientFetch(`${baseUrl}/api/leaderboard`, {
-            headers: { 'Authorization': `Bearer ${fresh}` },
-            maxRetries: 2,
-          });
-        }
+        if (fresh) res = await fetchOnce(fresh);
       }
+      if (res.status === 429) throw new Error('Server busy, please try again in a moment');
       if (!res.ok) throw new Error(`Server ${res.status}`);
       return res.json() as Promise<LeaderboardResponse>;
     },
