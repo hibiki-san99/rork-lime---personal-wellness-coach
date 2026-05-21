@@ -92,7 +92,9 @@ export async function resilientFetch(
     try {
       console.log(`[ResilientFetch] Attempt ${attempt + 1}/${maxRetries + 1}: ${url}`);
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+      // First attempt gets a longer timeout to absorb backend cold-start.
+      const timeoutMs = attempt === 0 ? 30000 : 15000;
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
       const response = await fetch(url, {
         ...fetchOptions,
         signal: controller.signal,
@@ -107,6 +109,11 @@ export async function resilientFetch(
 
       if (attempt < maxRetries) {
         onRetry?.(attempt + 1, maxRetries);
+        // On first failure (likely cold backend), try to wake it before retrying.
+        if (attempt === 0 && !skipWake) {
+          console.log('[ResilientFetch] First attempt failed, attempting wake...');
+          await wakeBackend().catch(() => false);
+        }
         const delay = retryDelayMs * (attempt + 1);
         console.log(`[ResilientFetch] Retrying in ${delay}ms...`);
         await new Promise((resolve) => setTimeout(resolve, delay));

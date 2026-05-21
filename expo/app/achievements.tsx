@@ -259,10 +259,11 @@ const BadgeCard = React.memo(({ badge, onPress, formatDate }: BadgeCardProps) =>
 
   return (
     <TouchableOpacity
-      style={[styles.card, isEarned && { shadowColor: meta.glow, shadowOpacity: 1, shadowRadius: 10 }]}
+      style={styles.card}
       onPress={() => onPress(badge)}
       activeOpacity={0.85}
     >
+      <View style={[styles.cardInner, isEarned && { shadowColor: meta.glow, shadowOpacity: 0.5, shadowRadius: 10 }]}>
       <View style={[
         styles.iconRing,
         {
@@ -291,6 +292,7 @@ const BadgeCard = React.memo(({ badge, onPress, formatDate }: BadgeCardProps) =>
       ) : (
         <Text style={[styles.tierLabel, { color: meta.chipText }]}>{meta.label}</Text>
       )}
+      </View>
     </TouchableOpacity>
   );
 });
@@ -365,18 +367,24 @@ const styles = StyleSheet.create({
     fontSize: 12, fontWeight: '700' as const, color: Colors.textSecondary,
   },
   grid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: 10,
+    flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4,
   },
 
   card: {
-    width: '31.5%' as any, backgroundColor: Colors.card, borderRadius: 16,
-    paddingVertical: 14, paddingHorizontal: 8, alignItems: 'center',
+    width: '33.333%' as any, backgroundColor: 'transparent', borderRadius: 16,
+    paddingVertical: 0, paddingHorizontal: 4, alignItems: 'center', marginBottom: 10,
     shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 3 },
     elevation: 2,
     overflow: 'hidden',
   },
+  cardInner: {
+    width: '100%', backgroundColor: Colors.card, borderRadius: 16,
+    paddingVertical: 14, paddingHorizontal: 6, alignItems: 'center',
+    shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 3 },
+    elevation: 2, overflow: 'hidden',
+  },
   iconRing: {
-    width: 58, height: 58, borderRadius: 29,
+    width: 54, height: 54, borderRadius: 27,
     borderWidth: 2.5,
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 8,
