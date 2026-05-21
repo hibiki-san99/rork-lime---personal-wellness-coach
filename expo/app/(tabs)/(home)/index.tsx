@@ -760,7 +760,7 @@ export default function DashboardScreen() {
                 return (
                   <TouchableOpacity
                     key={action.id}
-                    style={[styles.actionCard, { backgroundColor: action.bg }]}
+                    style={styles.actionCard}
                     onPress={() => {
                       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                       router.push(action.route as any);
@@ -768,10 +768,10 @@ export default function DashboardScreen() {
                     activeOpacity={0.7}
                     testID={`action-${action.id}`}
                   >
-                    <View style={[styles.actionIconWrap, { backgroundColor: action.color }]}>
-                      <IconComp size={22} color={Colors.white} />
+                    <View style={[styles.actionIconWrap, { backgroundColor: action.bg }]}>
+                      <IconComp size={24} color={action.color} />
                     </View>
-                    <Text style={[styles.actionLabel, { color: action.color }]}>{t(action.labelKey)}</Text>
+                    <Text style={styles.actionLabel}>{t(action.labelKey)}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -780,7 +780,7 @@ export default function DashboardScreen() {
             <Text style={styles.sectionTitle}>{t('dashboard.explore')}</Text>
             <View style={styles.exploreRow}>
               <TouchableOpacity
-                style={[styles.exploreCard, { backgroundColor: '#E3EAF2' }]}
+                style={styles.exploreCard}
                 onPress={() => {
                   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   router.push('/missions' as any);
@@ -788,11 +788,13 @@ export default function DashboardScreen() {
                 activeOpacity={0.7}
                 testID="missions-btn"
               >
-                <Target size={22} color={Colors.sleep} />
-                <Text style={[styles.exploreLabel, { color: Colors.sleep }]}>{t('dashboard.missions')}</Text>
+                <View style={[styles.exploreIconWrap, { backgroundColor: Colors.sleepLight }]}>
+                  <Target size={22} color={Colors.sleep} />
+                </View>
+                <Text style={styles.exploreLabel}>{t('dashboard.missions')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.exploreCard, { backgroundColor: '#FFF8E1' }]}
+                style={styles.exploreCard}
                 onPress={() => {
                   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   router.push('/weekly-report' as any);
@@ -800,8 +802,10 @@ export default function DashboardScreen() {
                 activeOpacity={0.7}
                 testID="report-btn"
               >
-                <BarChart3 size={22} color="#E65100" />
-                <Text style={[styles.exploreLabel, { color: '#E65100' }]}>{t('dashboard.weeklyReport')}</Text>
+                <View style={[styles.exploreIconWrap, { backgroundColor: Colors.moodLight }]}>
+                  <BarChart3 size={22} color={Colors.mood} />
+                </View>
+                <Text style={styles.exploreLabel}>{t('dashboard.weeklyReport')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -1077,12 +1081,20 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text, marginBottom: 14, letterSpacing: -0.3 },
   actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
   actionCard: {
-    width: (width - 52) / 2, borderRadius: 16, padding: 20, alignItems: 'flex-start',
+    width: (width - 52) / 2, borderRadius: 18, padding: 18, alignItems: 'flex-start',
+    backgroundColor: Colors.white,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#F1F3F6',
   },
   actionIconWrap: {
-    width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 12,
+    width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 12,
   },
-  actionLabel: { fontSize: 15, fontWeight: '700' as const },
+  actionLabel: { fontSize: 15, fontWeight: '700' as const, color: Colors.text },
   badgeScroll: { marginBottom: 24 },
   badgeCard: {
     backgroundColor: Colors.card, borderRadius: 14, padding: 14, marginRight: 12,
@@ -1100,9 +1112,20 @@ const styles = StyleSheet.create({
   pillarStripLabel: { fontSize: 12, color: Colors.textSecondary, fontWeight: '500' as const },
   exploreRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   exploreCard: {
-    flex: 1, borderRadius: 16, padding: 20, alignItems: 'center', gap: 8,
+    flex: 1, borderRadius: 18, padding: 18, alignItems: 'center', gap: 10,
+    backgroundColor: Colors.white,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#F1F3F6',
   },
-  exploreLabel: { fontSize: 15, fontWeight: '700' as const },
+  exploreIconWrap: {
+    width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
+  },
+  exploreLabel: { fontSize: 14, fontWeight: '700' as const, color: Colors.text },
   stepPermissionBox: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
