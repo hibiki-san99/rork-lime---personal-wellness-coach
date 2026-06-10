@@ -39,7 +39,7 @@ const en = {
   },
   dashboard: {
     greeting: 'Hi, {{name}}',
-    tagline: 'Small steps, bigger health',
+    tagline: 'Small steps, better health',
     todaysNutrition: "Today's Nutrition",
     todaysSteps: "Today's Steps",
     caloriesBurnt: 'Calories Burnt',

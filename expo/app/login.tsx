@@ -211,7 +211,7 @@ export default function LoginScreen() {
                 <Leaf size={38} color={Colors.white} fill={Colors.white} />
               </View>
               <Text style={styles.appName}>Lime</Text>
-              <Text style={styles.tagline}>Small steps, bigger health</Text>
+              <Text style={styles.tagline}>Small steps, better health</Text>
             </View>
 
             {mode === 'login' && (
