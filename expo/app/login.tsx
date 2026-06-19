@@ -6,6 +6,7 @@ import {
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Leaf, Mail, Lock, ArrowRight, KeyRound, Fingerprint, Dumbbell, Moon, Brain, Heart, Users } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
@@ -284,7 +285,12 @@ export default function LoginScreen() {
   }, [email, resetCode, newPassword, baseUrl]);
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#A8D85A', '#8DC63F', '#5DA018']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.container}
+    >
       <StatusBar style="light" />
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.safe}>
@@ -293,7 +299,7 @@ export default function LoginScreen() {
             {/* Logo + App Name */}
             <View style={styles.logoSection}>
               <LimeLogo />
-              <Text style={styles.appName}>Lime<Text style={styles.registered}>&reg;</Text></Text>
+              <Text style={styles.appName}>Lime</Text>
             </View>
 
             {mode === 'login' && (
@@ -494,14 +500,13 @@ export default function LoginScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: LIME_GREEN,
   },
   safe: { flex: 1 },
   scroll: {
@@ -521,10 +526,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: -0.5,
     marginTop: 20,
-  },
-  registered: {
-    fontSize: 16,
-    fontWeight: '600' as const,
   },
   form: {
     marginBottom: 20,
