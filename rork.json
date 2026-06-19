@@ -3,10 +3,7 @@
     {
       "name": "Expo",
       "path": "expo",
-      "framework": "react-native",
-      "settings": {
-        "iosBundleId": "app.lime-wellness"
-      }
+      "framework": "react-native"
     }
   ]
 }

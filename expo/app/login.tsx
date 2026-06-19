@@ -1,12 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, Alert, Image,
+  KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, Alert,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Leaf, Mail, Lock, ArrowRight, KeyRound, Fingerprint } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
@@ -15,8 +13,6 @@ import { useAuth } from '@/context/AuthContext';
 import * as LocalAuthentication from 'expo-local-authentication';
 
 type ScreenMode = 'login' | 'forgot' | 'reset';
-
-const OLIVE_DARK = '#4A7A1E';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -205,41 +201,33 @@ export default function LoginScreen() {
   }, [email, resetCode, newPassword, baseUrl]);
 
   return (
-    <LinearGradient
-      colors={['#C5E87A', '#8DC63F', '#4A8A10']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={styles.container}
-    >
-      <StatusBar style="light" />
+    <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-            {/* Logo + App Name */}
             <View style={styles.logoSection}>
-              <Image
-                source={require('@/assets/images/lime-logo.png')}
-                style={styles.logoImage}
-                resizeMode="contain"
-              />
+              <View style={styles.logoCircle}>
+                <Leaf size={38} color={Colors.white} fill={Colors.white} />
+              </View>
               <Text style={styles.appName}>Lime</Text>
+              <Text style={styles.tagline}>Small steps, bigger health</Text>
             </View>
 
             {mode === 'login' && (
               <View style={styles.form}>
-                <Text style={styles.formTitle}>Welcome back!</Text>
+                <Text style={styles.formTitle}>Welcome back</Text>
 
                 <View style={styles.inputGroup}>
                   <View style={styles.inputIcon}>
-                    <Mail size={18} color="#FFFFFF" />
+                    <Mail size={18} color={Colors.textTertiary} />
                   </View>
                   <TextInput
                     style={styles.input}
                     value={email}
                     onChangeText={setEmail}
                     placeholder="Email address"
-                    placeholderTextColor="rgba(255,255,255,0.6)"
+                    placeholderTextColor={Colors.textTertiary}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoComplete="email"
@@ -249,14 +237,14 @@ export default function LoginScreen() {
 
                 <View style={styles.inputGroup}>
                   <View style={styles.inputIcon}>
-                    <Lock size={18} color="#FFFFFF" />
+                    <Lock size={18} color={Colors.textTertiary} />
                   </View>
                   <TextInput
                     style={styles.input}
                     value={password}
                     onChangeText={setPassword}
                     placeholder="Password"
-                    placeholderTextColor="rgba(255,255,255,0.6)"
+                    placeholderTextColor={Colors.textTertiary}
                     secureTextEntry
                     autoComplete="password"
                     testID="login-password"
@@ -279,7 +267,7 @@ export default function LoginScreen() {
                     <ActivityIndicator size="small" color={Colors.white} />
                   ) : (
                     <>
-                      <Text style={styles.loginBtnText}>Sign in</Text>
+                      <Text style={styles.loginBtnText}>Sign In</Text>
                       <ArrowRight size={18} color={Colors.white} />
                     </>
                   )}
@@ -292,10 +280,27 @@ export default function LoginScreen() {
                     activeOpacity={0.7}
                     testID="biometric-login"
                   >
-                    <Fingerprint size={20} color={Colors.white} />
+                    <Fingerprint size={20} color={Colors.primaryDark} />
                     <Text style={styles.biometricBtnText}>Sign in with {biometricType}</Text>
                   </TouchableOpacity>
                 )}
+
+                <TouchableOpacity
+                  style={styles.forgotLink}
+                  onPress={() => { setError(null); setSuccessMsg(null); setMode('forgot'); }}
+                >
+                  <Text style={styles.forgotLinkText}>Forgot password?</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.registerLink}
+                  onPress={() => router.push('/onboarding')}
+                >
+                  <Text style={styles.registerLinkText}>
+                    {"New user? "}
+                    <Text style={styles.registerLinkBold}>Start health assessment</Text>
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
 
@@ -306,14 +311,14 @@ export default function LoginScreen() {
 
                 <View style={styles.inputGroup}>
                   <View style={styles.inputIcon}>
-                    <Mail size={18} color="#FFFFFF" />
+                    <Mail size={18} color={Colors.textTertiary} />
                   </View>
                   <TextInput
                     style={styles.input}
                     value={email}
                     onChangeText={setEmail}
                     placeholder="Email address"
-                    placeholderTextColor="rgba(255,255,255,0.6)"
+                    placeholderTextColor={Colors.textTertiary}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     testID="forgot-email"
@@ -342,10 +347,10 @@ export default function LoginScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.backLink}
+                  style={styles.forgotLink}
                   onPress={() => { setError(null); setSuccessMsg(null); setMode('login'); }}
                 >
-                  <Text style={styles.backLinkText}>Back to Sign In</Text>
+                  <Text style={styles.forgotLinkText}>Back to Sign In</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -361,14 +366,14 @@ export default function LoginScreen() {
 
                 <View style={styles.inputGroup}>
                   <View style={styles.inputIcon}>
-                    <KeyRound size={18} color="#FFFFFF" />
+                    <KeyRound size={18} color={Colors.textTertiary} />
                   </View>
                   <TextInput
                     style={styles.input}
                     value={resetCode}
                     onChangeText={setResetCode}
                     placeholder="Reset code"
-                    placeholderTextColor="rgba(255,255,255,0.6)"
+                    placeholderTextColor={Colors.textTertiary}
                     autoCapitalize="characters"
                     testID="reset-code"
                   />
@@ -376,14 +381,14 @@ export default function LoginScreen() {
 
                 <View style={styles.inputGroup}>
                   <View style={styles.inputIcon}>
-                    <Lock size={18} color="#FFFFFF" />
+                    <Lock size={18} color={Colors.textTertiary} />
                   </View>
                   <TextInput
                     style={styles.input}
                     value={newPassword}
                     onChangeText={setNewPassword}
                     placeholder="New password (min 6 chars)"
-                    placeholderTextColor="rgba(255,255,255,0.6)"
+                    placeholderTextColor={Colors.textTertiary}
                     secureTextEntry
                     testID="reset-new-password"
                   />
@@ -411,162 +416,85 @@ export default function LoginScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.backLink}
+                  style={styles.forgotLink}
                   onPress={() => { setError(null); setSuccessMsg(null); setMode('login'); }}
                 >
-                  <Text style={styles.backLinkText}>Back to Sign In</Text>
+                  <Text style={styles.forgotLinkText}>Back to Sign In</Text>
                 </TouchableOpacity>
               </View>
             )}
-
-            {/* Bottom tagline */}
-            <Text style={styles.bottomTagline}>Small steps, bigger health</Text>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   safe: { flex: 1 },
-  scroll: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-    paddingBottom: 40,
-  },
-  logoSection: {
-    alignItems: 'center',
-    marginBottom: 36,
-    marginTop: 20,
-  },
-  logoImage: {
-    width: 480,
-    height: 480,
-    marginBottom: 4,
+  scroll: { flexGrow: 1, justifyContent: 'center', padding: 28 },
+  logoSection: { alignItems: 'center', marginBottom: 40 },
+  logoCircle: {
+    width: 84, height: 84, borderRadius: 26, backgroundColor: Colors.primary,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35, shadowRadius: 16, elevation: 6,
   },
   appName: {
-    fontSize: 36,
-    fontWeight: '800' as const,
-    color: '#FFFFFF',
+    fontSize: 30, fontWeight: '800' as const, color: Colors.text,
     letterSpacing: -0.5,
-    marginTop: 20,
   },
-  form: {
-    marginBottom: 20,
-  },
+  tagline: { fontSize: 14, color: Colors.textSecondary, marginTop: 4 },
+  form: {},
   formTitle: {
-    fontSize: 24,
-    fontWeight: '700' as const,
-    color: '#FFFFFF',
-    marginBottom: 20,
+    fontSize: 22, fontWeight: '700' as const, color: Colors.text,
+    marginBottom: 8,
   },
   formSub: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 20,
-    lineHeight: 20,
+    fontSize: 14, color: Colors.textSecondary, marginBottom: 20, lineHeight: 20,
   },
   inputGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
-    marginBottom: 14,
-    overflow: 'hidden',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.card,
+    borderRadius: 16, borderWidth: 1, borderColor: Colors.cardBorder,
+    marginBottom: 14, overflow: 'hidden',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
   },
   inputIcon: {
-    width: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 48, alignItems: 'center', justifyContent: 'center',
   },
   input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#FFFFFF',
-    paddingVertical: 16,
-    paddingRight: 18,
+    flex: 1, fontSize: 15, color: Colors.text, paddingVertical: 16,
+    paddingRight: 16,
   },
   errorBanner: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 14,
+    backgroundColor: '#FDECEA', borderRadius: 12, padding: 12, marginBottom: 14,
   },
-  errorText: {
-    fontSize: 13,
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
+  errorText: { fontSize: 13, color: Colors.error, textAlign: 'center' },
   successBanner: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 14,
+    backgroundColor: Colors.primaryLight, borderRadius: 12, padding: 12, marginBottom: 14,
   },
-  successText: {
-    fontSize: 13,
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
+  successText: { fontSize: 13, color: Colors.primaryDark, textAlign: 'center' },
   loginBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: OLIVE_DARK,
-    paddingVertical: 16,
-    borderRadius: 100,
-    gap: 10,
-    marginTop: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 14,
-    elevation: 4,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.primary, paddingVertical: 17, borderRadius: 100,
+    gap: 8, marginTop: 8,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3, shadowRadius: 12, elevation: 4,
   },
-  loginBtnDisabled: { opacity: 0.55 },
-  loginBtnText: {
-    fontSize: 17,
-    fontWeight: '700' as const,
-    color: Colors.white,
-  },
-  backLink: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  backLinkText: {
-    fontSize: 15,
-    color: 'rgba(255,255,255,0.85)',
-    fontWeight: '600' as const,
-  },
+  loginBtnDisabled: { opacity: 0.6 },
+  loginBtnText: { fontSize: 16, fontWeight: '700' as const, color: Colors.white },
+  forgotLink: { alignItems: 'center', marginTop: 16 },
+  forgotLinkText: { fontSize: 14, color: Colors.primaryDark, fontWeight: '600' as const },
+  registerLink: { alignItems: 'center', marginTop: 16 },
+  registerLinkText: { fontSize: 14, color: Colors.textSecondary },
+  registerLinkBold: { fontWeight: '700' as const, color: Colors.primaryDark },
   biometricBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 16,
-    paddingVertical: 14,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 8, marginTop: 16, paddingVertical: 14, borderRadius: 100,
+    backgroundColor: Colors.primaryLight, borderWidth: 1, borderColor: '#CFE6A8',
   },
-  biometricBtnText: {
-    fontSize: 15,
-    fontWeight: '600' as const,
-    color: '#FFFFFF',
-  },
-  bottomTagline: {
-    fontSize: 15,
-    fontStyle: 'italic',
-    color: 'rgba(255,255,255,0.75)',
-    textAlign: 'center',
-    marginTop: 16,
-  },
+  biometricBtnText: { fontSize: 15, fontWeight: '600' as const, color: Colors.primaryDark },
+
 });

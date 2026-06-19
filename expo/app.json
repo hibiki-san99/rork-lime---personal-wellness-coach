@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "app.lime-wellness",
+      "bundleIdentifier": "app.rork.glenford-wellness-app",
       "infoPlist": {
         "NSMotionUsageDescription": "Lime needs access to your steps to track physical activity and reward your efforts."
       }
