@@ -1,13 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, Alert,
+  KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, Alert, Image,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Leaf, Mail, Lock, ArrowRight, KeyRound, Fingerprint, Dumbbell, Moon, Brain, Heart, Users } from 'lucide-react-native';
+import { Leaf, Mail, Lock, ArrowRight, KeyRound, Fingerprint } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { useAuth } from '@/context/AuthContext';
@@ -16,87 +16,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 
 type ScreenMode = 'login' | 'forgot' | 'reset';
 
-const LIME_GREEN = '#8DC63F';
 const OLIVE_DARK = '#4A7A1E';
-
-/** Six-segment lime logo with lifestyle icons positioned around the circle */
-function LimeLogo() {
-  const SIZE = 100;
-  const RADIUS = 33;
-  const CENTER = SIZE / 2;
-  const ICON_SIZE = 16;
-
-  const icons: { Icon: typeof Leaf; key: string }[] = [
-    { Icon: Leaf, key: 'leaf' },
-    { Icon: Dumbbell, key: 'dumbbell' },
-    { Icon: Moon, key: 'moon' },
-    { Icon: Brain, key: 'brain' },
-    { Icon: Heart, key: 'heart' },
-    { Icon: Users, key: 'users' },
-  ];
-
-  // Segment centre angles (degrees, 0 = top, clockwise)
-  const angles = [30, 90, 150, 210, 270, 330];
-
-  return (
-    <View style={{ width: SIZE, height: SIZE }}>
-      {/* Main circle */}
-      <View style={logoStyles.circle}>
-        {/* Dividing lines — 3 lines through centre at 0°, 60°, 120° */}
-        {[0, 60, 120].map((deg) => (
-          <View
-            key={`line-${deg}`}
-            style={[
-              logoStyles.divider,
-              { transform: [{ rotate: `${deg}deg` }] },
-            ]}
-          />
-        ))}
-        {/* Segment icons */}
-        {icons.map(({ Icon, key }, i) => {
-          const rad = (angles[i] * Math.PI) / 180;
-          const left = CENTER + RADIUS * Math.sin(rad) - ICON_SIZE / 2;
-          const top = CENTER - RADIUS * Math.cos(rad) - ICON_SIZE / 2;
-          return (
-            <View
-              key={key}
-              style={[
-                logoStyles.iconSlot,
-                { left, top, width: ICON_SIZE, height: ICON_SIZE },
-              ]}
-            >
-              <Icon size={ICON_SIZE} color="#FFFFFF" strokeWidth={2} />
-            </View>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
-const logoStyles = StyleSheet.create({
-  circle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: LIME_GREEN,
-    borderWidth: 2.5,
-    borderColor: 'rgba(255,255,255,0.6)',
-  },
-  divider: {
-    position: 'absolute',
-    left: 49, // (100 - 2) / 2
-    top: 0,
-    width: 2,
-    height: 100,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-  },
-  iconSlot: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -286,7 +206,7 @@ export default function LoginScreen() {
 
   return (
     <LinearGradient
-      colors={['#A8D85A', '#8DC63F', '#5DA018']}
+      colors={['#C5E87A', '#8DC63F', '#4A8A10']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.container}
@@ -298,7 +218,11 @@ export default function LoginScreen() {
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
             {/* Logo + App Name */}
             <View style={styles.logoSection}>
-              <LimeLogo />
+              <Image
+                source={require('@/assets/images/lime-logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
               <Text style={styles.appName}>Lime</Text>
             </View>
 
@@ -519,6 +443,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 36,
     marginTop: 20,
+  },
+  logoImage: {
+    width: 110,
+    height: 110,
+    marginBottom: 4,
   },
   appName: {
     fontSize: 36,
