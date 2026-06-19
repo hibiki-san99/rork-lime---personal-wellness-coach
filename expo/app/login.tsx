@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Leaf, Mail, Lock, ArrowRight, KeyRound, Fingerprint } from 'lucide-react-native';
+import { Leaf, Mail, Lock, ArrowRight, KeyRound, Fingerprint, ChevronLeft } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { useAuth } from '@/context/AuthContext';
@@ -208,15 +208,16 @@ export default function LoginScreen() {
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
             <View style={styles.logoSection}>
               <View style={styles.logoCircle}>
-                <Leaf size={38} color={Colors.white} fill={Colors.white} />
+                <Leaf size={30} color={Colors.white} fill={Colors.white} />
               </View>
               <Text style={styles.appName}>Lime</Text>
-              <Text style={styles.tagline}>Small steps, bigger health</Text>
+              <Text style={styles.tagline}>Small steps, better health</Text>
             </View>
 
             {mode === 'login' && (
               <View style={styles.form}>
                 <Text style={styles.formTitle}>Welcome back</Text>
+                <Text style={styles.formSub}>Sign in to continue your wellness journey</Text>
 
                 <View style={styles.inputGroup}>
                   <View style={styles.inputIcon}>
@@ -285,11 +286,18 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 )}
 
+                <View style={styles.dividerRow}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>or</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
                 <TouchableOpacity
-                  style={styles.forgotLink}
+                  style={styles.secondaryBtn}
                   onPress={() => { setError(null); setSuccessMsg(null); setMode('forgot'); }}
                 >
-                  <Text style={styles.forgotLinkText}>Forgot password?</Text>
+                  <KeyRound size={18} color={Colors.primaryDark} />
+                  <Text style={styles.secondaryBtnText}>Forgot password?</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -347,10 +355,11 @@ export default function LoginScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.forgotLink}
+                  style={styles.secondaryBtn}
                   onPress={() => { setError(null); setSuccessMsg(null); setMode('login'); }}
                 >
-                  <Text style={styles.forgotLinkText}>Back to Sign In</Text>
+                  <ChevronLeft size={18} color={Colors.primaryDark} />
+                  <Text style={styles.secondaryBtnText}>Back to Sign In</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -416,10 +425,11 @@ export default function LoginScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.forgotLink}
+                  style={styles.secondaryBtn}
                   onPress={() => { setError(null); setSuccessMsg(null); setMode('login'); }}
                 >
-                  <Text style={styles.forgotLinkText}>Back to Sign In</Text>
+                  <ChevronLeft size={18} color={Colors.primaryDark} />
+                  <Text style={styles.secondaryBtnText}>Back to Sign In</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -436,20 +446,20 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 28 },
   logoSection: { alignItems: 'center', marginBottom: 40 },
   logoCircle: {
-    width: 84, height: 84, borderRadius: 26, backgroundColor: Colors.primary,
+    width: 72, height: 72, borderRadius: 24, backgroundColor: Colors.primary,
     alignItems: 'center', justifyContent: 'center', marginBottom: 18,
     shadowColor: Colors.primary, shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35, shadowRadius: 16, elevation: 6,
+    shadowOpacity: 0.32, shadowRadius: 16, elevation: 6,
   },
   appName: {
-    fontSize: 30, fontWeight: '800' as const, color: Colors.text,
-    letterSpacing: -0.5,
+    fontSize: 28, fontWeight: '800' as const, color: Colors.text,
+    letterSpacing: -0.3,
   },
   tagline: { fontSize: 14, color: Colors.textSecondary, marginTop: 4 },
   form: {},
   formTitle: {
-    fontSize: 22, fontWeight: '700' as const, color: Colors.text,
-    marginBottom: 8,
+    fontSize: 24, fontWeight: '800' as const, color: Colors.text,
+    letterSpacing: -0.3, marginBottom: 8,
   },
   formSub: {
     fontSize: 14, color: Colors.textSecondary, marginBottom: 20, lineHeight: 20,
@@ -479,14 +489,26 @@ const styles = StyleSheet.create({
   loginBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     backgroundColor: Colors.primary, paddingVertical: 17, borderRadius: 100,
-    gap: 8, marginTop: 8,
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3, shadowRadius: 12, elevation: 4,
+    gap: 10, marginTop: 8,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.32, shadowRadius: 16, elevation: 6,
   },
   loginBtnDisabled: { opacity: 0.6 },
-  loginBtnText: { fontSize: 16, fontWeight: '700' as const, color: Colors.white },
-  forgotLink: { alignItems: 'center', marginTop: 16 },
-  forgotLinkText: { fontSize: 14, color: Colors.primaryDark, fontWeight: '600' as const },
+  loginBtnText: { fontSize: 17, fontWeight: '700' as const, color: Colors.white },
+  dividerRow: {
+    flexDirection: 'row', alignItems: 'center', marginTop: 24, marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.divider },
+  dividerText: { fontSize: 13, color: Colors.textTertiary, marginHorizontal: 12 },
+  secondaryBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 8, paddingVertical: 15, borderRadius: 100,
+    backgroundColor: Colors.primaryLight, borderWidth: 1, borderColor: '#CFE6A8',
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
+  },
+  secondaryBtnText: { fontSize: 15, fontWeight: '600' as const, color: Colors.primaryDark },
   registerLink: { alignItems: 'center', marginTop: 16 },
   registerLinkText: { fontSize: 14, color: Colors.textSecondary },
   registerLinkBold: { fontWeight: '700' as const, color: Colors.primaryDark },
