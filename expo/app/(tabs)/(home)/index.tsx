@@ -519,6 +519,12 @@ export default function DashboardScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const chevronAnim = useRef(new Animated.Value(0)).current;
   const [nutritionExpanded, setNutritionExpanded] = useState(false);
+  const [loadTimeout, setLoadTimeout] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoadTimeout(true), 6000);
+    return () => clearTimeout(t);
+  }, []);
 
   const targets = nutrientTargets ?? DEFAULT_TARGETS;
 
@@ -665,7 +671,7 @@ export default function DashboardScreen() {
     outputRange: ['0deg', '180deg'],
   });
 
-  if (!onboardingComplete || !profile) {
+  if (!loadTimeout && (!onboardingComplete || !profile)) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#5DB033" />

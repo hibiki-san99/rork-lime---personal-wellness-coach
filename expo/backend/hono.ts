@@ -282,6 +282,19 @@ app.get("/health", async (c) => {
 
 app.post("/auth/register", async (c) => {
   try {
+    // Wake up Supabase connection
+    try {
+      const sb = getSupabase();
+      const { error: pingErr } = await sb.from("users").select("id", { count: "exact", head: true });
+      if (pingErr) {
+        console.log("[Auth] Register - Supabase ping failed:", pingErr.message);
+      } else {
+        console.log("[Auth] Register - Supabase ping ok");
+      }
+    } catch (pingErr) {
+      console.log("[Auth] Register - Supabase ping error:", pingErr);
+    }
+
     const { email, password, name } = await c.req.json();
     console.log(`[Auth] Register attempt: email=${email}, name=${name}`);
     if (!email || !password || !name) {
@@ -309,7 +322,22 @@ app.post("/auth/register", async (c) => {
       createdAt: new Date().toISOString(),
     };
     console.log(`[Auth] Inserting user: ${id}`);
-    await insertUser(user);
+    let insertAttempts = 0;
+    let insertSuccess = false;
+    while (insertAttempts < 2 && !insertSuccess) {
+      try {
+        await insertUser(user);
+        insertSuccess = true;
+      } catch (insertErr) {
+        insertAttempts++;
+        console.log(`[Auth] insertUser attempt ${insertAttempts} failed:`, insertErr);
+        if (insertAttempts < 2) {
+          await new Promise(r => setTimeout(r, 1500));
+        } else {
+          throw insertErr;
+        }
+      }
+    }
     console.log(`[Auth] User inserted, creating token`);
 
     const token = genToken();
@@ -319,8 +347,9 @@ app.post("/auth/register", async (c) => {
     return c.json({ token, user: { id, email: user.email, name, isAdmin } });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
-    console.log("[Auth] Register error:", errorMsg);
-    return c.json({ error: `Registration failed: ${errorMsg}` }, 500);
+    const safeMsg = errorMsg && errorMsg.trim() !== '' ? errorMsg : 'Unknown server error';
+    console.log("[Auth] Register error:", safeMsg);
+    return c.json({ error: `Registration failed: ${safeMsg}` }, 500);
   }
 });
 

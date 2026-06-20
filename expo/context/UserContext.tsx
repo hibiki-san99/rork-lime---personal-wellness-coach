@@ -185,22 +185,32 @@ export const [UserProvider, useUser] = createContextHook(() => {
     prevTokenRef.current = token;
 
     const restoreFromBackend = async () => {
-      console.log('[Sync] Attempting to restore data from backend...');
-      const remote = await fetchFromBackend();
-      if (remote && remote.onboardingComplete) {
-        console.log('[Sync] Restoring remote state - profile:', remote.profile?.name);
-        if (remote.profile && !remote.heartAgeResult) {
-          console.log('[Sync] Heart age missing in remote data, recalculating...');
-          const defaultClinical = remote.clinicalMeasurements ?? { fastingGlucose: '', systolicBP: '', diastolicBP: '', totalCholesterol: '', ldl: '', hdl: '', triglycerides: '' };
-          const defaultMedical = remote.medicalHistory ?? { diabetes: false, rheumatoidArthritis: false, ckd: false, atrialFibrillation: false, familyHistoryCVD: false, onBloodPressureMeds: false, onCholesterolMeds: false };
-          remote.heartAgeResult = calculateHeartAge(remote.profile, defaultMedical, defaultClinical);
+      try {
+        console.log('[Sync] Attempting to restore data from backend...');
+        const remote = await Promise.race([
+          fetchFromBackend(),
+          new Promise<null>(resolve => setTimeout(() => {
+            console.log('[Sync] Backend fetch timed out after 8s, using local data');
+            resolve(null);
+          }, 8000)),
+        ]);
+        if (remote && remote.onboardingComplete) {
+          console.log('[Sync] Restoring remote state - profile:', remote.profile?.name);
+          if (remote.profile && !remote.heartAgeResult) {
+            console.log('[Sync] Heart age missing in remote data, recalculating...');
+            const defaultClinical = remote.clinicalMeasurements ?? { fastingGlucose: '', systolicBP: '', diastolicBP: '', totalCholesterol: '', ldl: '', hdl: '', triglycerides: '' };
+            const defaultMedical = remote.medicalHistory ?? { diabetes: false, rheumatoidArthritis: false, ckd: false, atrialFibrillation: false, familyHistoryCVD: false, onBloodPressureMeds: false, onCholesterolMeds: false };
+            remote.heartAgeResult = calculateHeartAge(remote.profile, defaultMedical, defaultClinical);
+          }
+          setState(remote);
+          const key = getStorageKey(authUser.id);
+          if (key) await AsyncStorage.setItem(key, JSON.stringify(remote));
+        } else {
+          console.log('[Sync] No remote data to restore');
         }
-        setState(remote);
-        const key = getStorageKey(authUser.id);
-        if (key) await AsyncStorage.setItem(key, JSON.stringify(remote));
-        hasFetchedRemoteRef.current = true;
-      } else {
-        console.log('[Sync] No remote data to restore');
+      } catch (err) {
+        console.log('[Sync] restoreFromBackend failed:', err);
+      } finally {
         hasFetchedRemoteRef.current = true;
       }
     };
