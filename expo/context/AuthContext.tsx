@@ -100,14 +100,44 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   const registerMutation = useMutation({
     mutationFn: async (params: RegisterParams): Promise<AuthResponse> => {
-      const res = await resilientFetch(`${getBaseUrl()}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Registration failed');
-      return data as AuthResponse;
+      // Wake the backend before hitting the real endpoint
+      try {
+        await fetch(`${getBaseUrl()}/api/health`, { method: 'GET' });
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch { /* ignore */ }
+
+      const attemptRegister = async (): Promise<AuthResponse> => {
+        const res = await resilientFetch(`${getBaseUrl()}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params),
+        });
+        const text = await res.text();
+        if (!text || text.trim() === '') {
+          throw new Error('Server returned an empty response. The backend may be starting up — please try again in a few seconds.');
+        }
+        let data: { error?: string; token?: string; user?: AuthUser };
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error('Server error. Please try again.');
+        }
+        if (!res.ok) throw new Error(data.error || 'Registration failed');
+        return data as AuthResponse;
+      };
+
+      try {
+        return await attemptRegister();
+      } catch (firstErr) {
+        // Retry once after 3s if the first attempt got an empty response
+        const msg = firstErr instanceof Error ? firstErr.message : '';
+        if (msg.includes('empty response') || msg.includes('starting up')) {
+          console.log('[Auth] Registration empty response — retrying in 3s...');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          return await attemptRegister();
+        }
+        throw firstErr;
+      }
     },
     onSuccess: (data, variables) => { void saveAuth(data, variables.email, variables.password); },
   });

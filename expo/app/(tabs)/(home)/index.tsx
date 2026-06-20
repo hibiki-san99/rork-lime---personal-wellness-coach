@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Dimensions, Platform, LayoutAnimation,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Dimensions, Platform, LayoutAnimation, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -665,7 +665,23 @@ export default function DashboardScreen() {
     outputRange: ['0deg', '180deg'],
   });
 
-  if (!onboardingComplete) return null;
+  if (!onboardingComplete || !profile) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#5DB033" />
+        <Text style={styles.loadingText}>Loading your dashboard...</Text>
+        <TouchableOpacity
+          style={styles.loadingRetryBtn}
+          onPress={() => {
+            // Fallback: navigate to login if stuck
+            router.replace('/login');
+          }}
+        >
+          <Text style={styles.loadingRetryText}>Tap here if stuck</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -1349,6 +1365,28 @@ const styles = StyleSheet.create({
     marginTop: 8,
     lineHeight: 16,
   },
-
-
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    backgroundColor: Colors.background,
+    gap: 12,
+  },
+  loadingText: {
+    marginTop: 4,
+    color: Colors.textSecondary,
+    fontSize: 14,
+  },
+  loadingRetryBtn: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: Colors.primaryLight,
+  },
+  loadingRetryText: {
+    fontSize: 13,
+    color: Colors.primaryDark,
+    fontWeight: '600' as const,
+  },
 });
