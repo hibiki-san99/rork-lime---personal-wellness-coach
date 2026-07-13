@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Lime",
+    "name": "Lime - Personal WellnessCoach",
     "slug": "lime-personal-wellness-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "app.rork.glenford-wellness-app",
+      "bundleIdentifier": "app.lime-wellness-app",
       "infoPlist": {
         "NSMotionUsageDescription": "Lime needs access to your steps to track physical activity and reward your efforts."
       }

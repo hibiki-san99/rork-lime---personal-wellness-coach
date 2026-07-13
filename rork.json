@@ -3,7 +3,11 @@
     {
       "name": "Expo",
       "path": "expo",
-      "framework": "react-native"
+      "framework": "react-native",
+      "settings": {
+        "displayName": "Lime - Personal WellnessCoach",
+        "iosBundleId": "app.lime-wellness-app"
+      }
     }
   ]
 }
